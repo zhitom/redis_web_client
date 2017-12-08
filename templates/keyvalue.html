@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="demoTable">
+  搜索：
+  <div class="layui-inline">
+    <input class="layui-input" name="id" id="demoReload" autocomplete="off">
+  </div>
+  <button class="layui-btn" data-type="reload">搜索</button>
+	{% if user.permission == 0 or user.permission == 2 %}
+  <div class="layui-inline">
+	  <button class="layui-btn layui-btn-normal"><a href="/add/key/{{ server_name }}/">新增</a></button>
+  </div>
+	{% endif %}
+</div>
+
+
+<table class="layui-hide" id="LAY_table_user" lay-filter="user"></table>
+<script>
+layui.use('table', function(){
+  var table = layui.table;
+
+  //方法级渲染
+  table.render({
+    elem: '#LAY_table_user'
+    ,url: '/get_key/{{ server_id }}/{{ db_id }}/'
+    ,cols: [[
+      {checkbox: true, fixed: true}
+      ,{field:'key', title: 'dbkey', width:1000, sort: true}
+      ,{fixed:'right', width:160, align:'center', toolbar: '#barDemo'}
+    ]]
+    ,id: 'testReload'
+    ,page: true
+    ,height: 600
+  });
+
+  var $ = layui.$, active = {
+    reload: function(){
+      var demoReload = $('#demoReload');
+
+      table.reload('testReload', {
+        where: {
+          key: {
+            id: demoReload.val()
+          }
+        }
+      });
+    }
+  };
+  table.on('checkbox(user)', function(obj){
+    console.log(obj)
+  });
+
+  table.on('tool(user)', function(obj){
+    var data = obj.data;
+		{#    获取value   #}
+    if(obj.event === 'detail'){
+      $.ajax({
+		      url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/',
+		      dataType: 'json',
+		      type: 'get',
+		      success:function (datas) {
+		          console.log(datas);
+		          layer.open({
+				          title: datas.data.key,
+				          content: JSON.stringify(datas.data.value)
+		          });
+		      }
+      });
+    } else if(obj.event === 'del'){
+      layer.confirm('真的删除行么', function(index){
+        var del_data = {"server_id": {{ server_id }}, 'db_id': {{ db_id }}, 'key': data.key, 'csrfmiddlewaretoken': '{{ csrf_token }}' };
+        $.ajax({
+		        url: '/del/key/',
+		        dataType: 'json',
+		        type: 'post',
+		        data: del_data,
+		        success:function (del_datas) {
+		            if(del_datas.code === 0){
+                  obj.del();
+                  layer.msg(del_datas.msg)
+		            }
+		            else{
+		                layer.msg(del_datas.msg)
+		            }
+            }
+        });
+        layer.close(index);
+      });
+    } else if(obj.event === 'edit'){
+        window.location.href="/edit/redis{{ server_id }}/db{{ db_id }}?key=" + data.key;
+    }
+  });
+
+  $('.demoTable .layui-btn').on('click', function(){
+    var type = $(this).data('type');
+    active[type] ? active[type].call(this) : '';
+  });
+});
+
+</script>
+	<script type="text/html" id="barDemo">
+  <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="detail">查看</a>
+
+  {% if user.permission == 0 or user.permission == 2 %}
+  <a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>
+  {% endif %}
+
+  {% if user.permission == 0 or user.permission == 2 %}
+  <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
+	{% endif %}
+
+</script>
+{% endblock %}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>{% block title %}{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'css/layui.css' %}">
+{% block css %}{% endblock %}
+<script src="{% static 'layui.js' %}"></script>
+{% block headerjs %}{% endblock %}
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+  <div class="layui-header">
+    <div class="layui-logo layui-bg-blue">Redis管理平台</div>
+    <!-- 头部区域（可配合layui已有的水平导航） -->
+    <ul class="layui-nav layui-layout-left">
+      <li class="layui-nav-item {% if console %}layui-this{% endif %}"><a href="/">控制台</a></li>
+      <li class="layui-nav-item {% if error %}layui-this{% endif %}"><a href="/error/">连接错误</a></li>
+      {% if user.permission == 0 or user.permission == 2 %}
+      <li class="layui-nav-item {% if record %}layui-this{% endif %}">
+	      <a href="javascript:;">记录</a>
+        <dl class="layui-nav-child">
+          <dd><a href="{% url 'operation_edit' %}">编辑记录</a></dd>
+          <dd><a href="{% url 'operation_del' %}">删除记录</a></dd>
+        </dl>
+      </li>
+      {% endif %}
+      {% if user.permission == 0 %}
+      <li class="layui-nav-item {% if manage %}layui-this{% endif %}"><a href="/user/manage/">用户管理</a></li>
+      {% endif %}
+    </ul>
+    <ul class="layui-nav layui-layout-right">
+      <li class="layui-nav-item">
+        <a href="javascript:;">
+          <img src="{{ user.img }}" class="layui-nav-img">
+          {{ user.username }}
+        </a>
+      </li>
+      <li class="layui-nav-item"><a href="/logout/">退出</a></li>
+    </ul>
+  </div>
+
+  <div class="layui-side layui-bg-black layui-bg-blue">
+    <div class="layui-side-scroll">
+      <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+      <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+	      {% for server in menu %}
+        <li class="layui-nav-item {% ifequal server.name server_name %}layui-nav-itemed{% endifequal %}">
+          <a class="" href="javascript:;">{{ server.name }}</a>
+          <dl class="layui-nav-child">
+	          {% for db in server.db %}
+            <dd class="{% ifequal server.name server_name %}{% ifequal db.name db_num %} layui-bg-green{% endifequal %}{% endifequal %}"><a href="/{{ server.name }}/{{ db.name }}">{{ db.name }} (keys={{ db.count }})</a></dd>
+	          {% endfor %}
+          </dl>
+        </li>
+	      {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="layui-body">
+    <!-- 内容主体区域 -->
+    <div style="padding: 15px;">
+		    <div class="layui-row layui-col-space10">
+				  <div class="layui-col-md12">
+			      {% block content %}
+				    {% endblock %}
+				  </div>
+				</div>
+    </div>
+  </div>
+
+  <div class="layui-footer">
+    <!-- 底部固定区域 -->
+    © Carey
+  </div>
+</div>
+{% block endjs %}{% endblock %}
+<script>
+//JavaScript代码区域
+layui.use('element', function(){
+  var element = layui.element;
+
+});
+</script>
+</body>
+</html>
