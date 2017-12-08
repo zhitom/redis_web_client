@@ -2,7 +2,7 @@
 
 start() {
     source activate py27
-    gunicorn -c funicorn.py dct_redis.wsgi
+    gunicorn -c funicorn.py redis_web_client.wsgi
     if [ $? -eq 0 ]; then
         echo 'start [ ok ]'
     else
