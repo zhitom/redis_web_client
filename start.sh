@@ -10,7 +10,7 @@ start() {
 }
 
 stop() {
-    pid=`cat /data/wwwroot/redis_web_clieng/log/gunicorn.pid`
+    pid=`cat /data/wwwroot/redis_web_client/log/gunicorn.pid`
     kill ${pid}
     if [ $? -eq 0 ]; then
         echo 'stop [ ok ]'

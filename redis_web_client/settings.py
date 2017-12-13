@@ -149,7 +149,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
-            'filename': os.path.join(BASE_DIR, 'log/dct.log'),
+            'filename': os.path.join(BASE_DIR, 'log/redis_web_client.log'),
             'maxBytes': 1024*1024*5,
             'backupCount': 5,
         },
