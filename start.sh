@@ -1,7 +1,6 @@
 #!/bin/bash
 
 start() {
-    source activate py27
     gunicorn -c funicorn.py redis_web_client.wsgi
     if [ $? -eq 0 ]; then
         echo 'start [ ok ]'
@@ -11,7 +10,7 @@ start() {
 }
 
 stop() {
-    pid=`cat /data/wwwlogs/gunicorn.pid`
+    pid=`cat /data/wwwroot/redis_web_clieng/log/gunicorn.pid`
     kill ${pid}
     if [ $? -eq 0 ]; then
         echo 'stop [ ok ]'
