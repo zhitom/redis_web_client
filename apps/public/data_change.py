@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from redis_web_client.settings import scan_batch
+from conf.conf import scan_batch
 from public.redis_api import get_cl
 
 

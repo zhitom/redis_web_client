@@ -1,21 +1,21 @@
-## redis web client
+## redis admin
 ### 安装
 
 ```
 python 2.7 环境
 mkdir -p /data/wwwroot/ && cd /data/wwwroot
-git clone https://gitee.com/careyjike_173/redis_web_client.git
-cd redis_web_client && pip install -r requirements.txt
+git clone https://gitee.com/careyjike_173/redis_web_client.git redis_admin
+cd redis_admin && pip install -r requirements.txt
 ```
 
 ### database配置   
 默认使用`sqlite3`  
 只用于用户登录和删除修改记录等，推荐默认   
-修改为`mysql`, `vim redis_web_client/settings.py` 修改`DATABASES`部分   
+修改为`mysql`, `vim redis_admin/settings.py` 修改`DATABASES`部分
 安装`pip install MySQL-python==1.2.5`
   
 ### redis配置  
-  `vim redis_web_client/settgins.py` `base`部分
+  `vim conf/conf.py` `base`部分
   
   ```
   # redis 配置
@@ -57,7 +57,6 @@ cd script && ./installl
   listen 80;
   server_name _;
   access_log /data/wwwlogs/access_nginx.log combined;
-  root /data/wwwroot/default;
   index index.html index.htm index.php;
   location / {
     proxy_pass http://127.0.0.1:8000;
@@ -66,16 +65,16 @@ cd script && ./installl
                 expires 7d;
                 autoindex on;
                 add_header Cache-Control provate;
-                alias /data/wwwroot/redis_web_client/static;
+                alias /data/wwwroot/redis_admin/static;
         }
   }
 ```
 
 ### 启动
-启动 `redis_web_client`
+启动 `redis_admin`
 
 ```
-gunicorn -c funicorn.py redis_web_client.wsgi
+gunicorn -c funicorn.py redis_admin.wsgi
 ```
 启动`nginx`
 
@@ -83,10 +82,8 @@ gunicorn -c funicorn.py redis_web_client.wsgi
 service nginx start
 ```
 
-访问浏览器http://ip/  
-访问用户:admin 密码:admin   
-可以使用`python manage.py createsuperuser` 创建用户
-
+使用`python manage.py createsuperuser` 创建用户  
+**访问浏览器 http://ip/** 
 
 ![](https://gitee.com/careyjike_173/redis_web_client/raw/master/static/img/1.png)
 

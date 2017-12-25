@@ -4,8 +4,7 @@ import socket
 import sys
 import logging
 
-from redis_web_client import settings
-from redis_web_client.settings import base
+from conf.conf import base, socket_timeout,  scan_batch
 from redis.exceptions import (
     RedisError,
     ConnectionError,
@@ -73,7 +72,7 @@ def get_all_keys_dict(client=None):
     for key in m_all:
         if len(key)>100:
             continue
-        key_levels = key.split(settings.base['seperator'])
+        key_levels = key.split(base['seperator'])
         cur = me
         for lev in key_levels:
             if cur.has_key(lev):
@@ -89,7 +88,7 @@ def get_all_keys_tree(client=None,key='*', cursor=0, min_num=None, max_num=None)
     client = client or get_client()
     key = key or '*'
     if key=='*':
-        next_cursor,key_all = client.scan(cursor=cursor, match=key, count=settings.scan_batch)
+        next_cursor,key_all = client.scan(cursor=cursor, match=key, count=scan_batch)
     else:
         key = '*%s*'%key
         next_cursor,key_all = 0, client.keys(key)
@@ -98,7 +97,7 @@ def get_all_keys_tree(client=None,key='*', cursor=0, min_num=None, max_num=None)
     return key_all
 
 
-def check_connect(host,port, password=None, socket_timeout=settings.socket_timeout):
+def check_connect(host, port, password=None, socket_timeout=socket_timeout):
     # from redis import Connection
     try:
         conn = Connection(host=host, port=port, password=password, socket_timeout=socket_timeout)
