@@ -53,18 +53,23 @@ layui.use('table', function(){
   table.on('tool(user)', function(obj){
     var data = obj.data;
 		{#    获取value   #}
+	  layer.load();
     if(obj.event === 'detail'){
       $.ajax({
 		      url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/',
 		      dataType: 'json',
 		      type: 'get',
 		      success:function (datas) {
-		          console.log(datas);
+              layer.closeAll('loading');
 		          layer.open({
 				          title: datas.data.key,
 				          content: JSON.stringify(datas.data.value)
 		          });
-		      }
+		      },
+		      error:function () {
+              layer.closeAll('loading');
+				      layer.msg('请求错误!', {icon: 5})
+          }
       });
     } else if(obj.event === 'del'){
       layer.confirm('真的删除行么', function(index){
@@ -75,6 +80,7 @@ layui.use('table', function(){
 		        type: 'post',
 		        data: del_data,
 		        success:function (del_datas) {
+				        layer.closeAll('loading');
 		            if(del_datas.code === 0){
                   obj.del();
                   layer.msg(del_datas.msg)
@@ -82,6 +88,10 @@ layui.use('table', function(){
 		            else{
 		                layer.msg(del_datas.msg)
 		            }
+            },
+            error:function () {
+		            layer.closeAll('loading');
+		            layer.msg('请求错误', {icon: 5})
             }
         });
         layer.close(index);

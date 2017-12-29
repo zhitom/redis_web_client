@@ -139,6 +139,9 @@ class GetValueView(LoginRequiredMixin, View):
 
 
 class GetIdView(LoginRequiredMixin, View):
+    """
+    key列表
+    """
     def get(self, request, server_id, id):
         menu = Menu()
         server_name = 'redis' + server_id
