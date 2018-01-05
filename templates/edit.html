@@ -8,10 +8,26 @@
     </div>
   </div>
   <div class="layui-form-item">
-    <label class="layui-form-label">类型</label>
+    <label class="layui-form-label">type</label>
     <div class="layui-input-inline">
       <input type="text" name="type" required lay-verify="required" placeholder="" readonly="readonly" value="{{ data.type }}" autocomplete="off" class="layui-input">
 	    {% csrf_token %}
+	    <input type="hidden" name="db_id" value="{{ data.db }}">
+	    <input type="hidden" name="redis_id" value="{{ redis_id }}">
+    </div>
+    <div class="layui-form-mid layui-word-aux"></div>
+  </div>
+	<div class="layui-form-item">
+    <label class="layui-form-label">db</label>
+    <div class="layui-input-inline">
+      <input type="text" name="type" required lay-verify="required" placeholder="" readonly="readonly" value="{{ data.db }}" autocomplete="off" class="layui-input">
+    </div>
+    <div class="layui-form-mid layui-word-aux"></div>
+  </div>
+	<div class="layui-form-item">
+    <label class="layui-form-label">size</label>
+    <div class="layui-input-inline">
+      <input type="text" name="type" required lay-verify="required" placeholder="" readonly="readonly" value="{{ data.size }}" autocomplete="off" class="layui-input">
 	    <input type="hidden" name="db_id" value="{{ data.db }}">
 	    <input type="hidden" name="redis_id" value="{{ redis_id }}">
     </div>
