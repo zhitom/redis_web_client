@@ -17,13 +17,14 @@ base = {
             'port': 8000,
             'password': '',
             'databases': 16
-            # }, {
-            #  'index': 1,
-            #  'name': 'redis1',
-            #  'host': '127.0.0.1',
-            #  'port': 6379,
-            #  'password': '',
-            #  'databases': 16
+        },
+        {
+             'index': 1,
+             'name': 'redis1',
+             'host': '127.0.0.1',
+             'port': 6379,
+             'password': '',
+             'databases': 16
         }
     ],
     'seperator': ':',
