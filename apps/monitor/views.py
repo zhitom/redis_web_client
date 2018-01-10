@@ -130,12 +130,34 @@ class GetValueView(LoginRequiredMixin, View):
         cl, cur_server_index, cur_db_index = get_cl(int(value_redis_id), int(value_db_id))
         value_dict = {'code': 0, 'msg': '', 'data': ''}
         if cl.exists(key):
-            value = get_value(key, cur_server_index, cur_db_index, cl)
+            if request.GET.get("type", None) == 'ttl':
+                value = cl.ttl(key)
+                if value is None:
+                    value = -1
+            else:
+                value = get_value(key, cur_server_index, cur_db_index, cl)
             value_dict['data'] = value
         else:
             value_dict['code'] = 1
 
         return JsonResponse(value_dict, safe=False)
+
+    def post(self, request, value_redis_id, value_db_id, key):
+        """
+        修改TTL
+        """
+        from public.redis_api import get_cl
+        cl, cur_server_index, cur_db_index = get_cl(int(value_redis_id), int(value_db_id))
+        value_dict = {'code': 0, 'msg': '', 'data': ''}
+        ttl = request.POST.get("ttl", None)
+        if cl.exists(key) and ttl:
+            try:
+                cl.expire(key, ttl)
+                value_dict['msg'] = "修改成功"
+            except Exception as e:
+                logs.error(e)
+                value_dict['msg'] = '修改失败，请联系管理员'
+        return JsonResponse(value_dict)
 
 
 class GetIdView(LoginRequiredMixin, View):

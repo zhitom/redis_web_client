@@ -26,7 +26,7 @@ layui.use('table', function(){
     ,cols: [[
       {checkbox: true, fixed: true}
       ,{field:'key', title: 'dbkey', width:1000, sort: true}
-      ,{fixed:'right', width:160, align:'center', toolbar: '#barDemo'}
+      ,{fixed:'right', width:260, align:'center', toolbar: '#barDemo'}
     ]]
     ,id: 'testReload'
     ,page: true
@@ -98,6 +98,41 @@ layui.use('table', function(){
       });
     } else if(obj.event === 'edit'){
         window.location.href="/edit/redis{{ server_id }}/db{{ db_id }}?key=" + data.key;
+    } else if(obj.event === 'edit_ttl'){
+        $.ajax({
+		      url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/?type=ttl',
+		      dataType: 'json',
+		      type: 'get',
+		      success:function (datas) {
+              layer.closeAll('loading');
+		          layer.prompt({
+				          title: "TTL",
+				          formType: 0,
+				          value: datas.data
+		          }, function (value, index, elem) {
+		              layer.load();
+		              $.ajax({
+				              url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/?type=ttl',
+				              dataType: 'json',
+				              type: 'post',
+				              data: {'csrfmiddlewaretoken': '{{ csrf_token }}', 'ttl': value},
+				              success:function (datas) {
+						              layer.closeAll('loading');
+						              layer.msg(datas.msg);
+                      },
+                      error:function () {
+		                      layer.closeAll('loading');
+		                      layer.msg('请求错误', {icon: 5})
+                      }
+		              });
+		              layer.close(index);
+              });
+		      },
+		      error:function () {
+              layer.closeAll('loading');
+				      layer.msg('请求错误!', {icon: 5})
+          }
+      });
     }
   });
 
@@ -112,7 +147,8 @@ layui.use('table', function(){
   <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="detail">查看</a>
 
   {% if user.permission == 0 or user.permission == 2 %}
-  <a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>
+  <a class="layui-btn layui-btn-mini" lay-event="edit_ttl">TTL</a>
+  <a class="layui-btn layui-btn-mini layui-btn-warm" lay-event="edit">编辑</a>
   {% endif %}
 
   {% if user.permission == 0 or user.permission == 2 %}
