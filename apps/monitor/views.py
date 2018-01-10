@@ -130,12 +130,17 @@ class GetValueView(LoginRequiredMixin, View):
         cl, cur_server_index, cur_db_index = get_cl(int(value_redis_id), int(value_db_id))
         value_dict = {'code': 0, 'msg': '', 'data': ''}
         if cl.exists(key):
+            value = ''
             if request.GET.get("type", None) == 'ttl':
                 value = cl.ttl(key)
                 if value is None:
                     value = -1
             else:
-                value = get_value(key, cur_server_index, cur_db_index, cl)
+                try:
+                    value = get_value(key, cur_server_index, cur_db_index, cl)
+                except Exception as e:
+                    logs.error(e)
+                    value_dict['code'] = 1
             value_dict['data'] = value
         else:
             value_dict['code'] = 1
@@ -345,6 +350,9 @@ class EditValueTableView(LoginRequiredMixin, View):
 
 
 class BgSaveView(LoginRequiredMixin, View):
+    """
+    保存数据 bgsave
+    """
     def get(self, request, bg_server_id):
         from public.redis_api import get_cl
         cl, cur_server_index, cur_db_index = get_cl(redis_id=bg_server_id, db_id=0)

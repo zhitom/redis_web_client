@@ -152,6 +152,7 @@ class Connection(redis.Connection):
         if self.password:
             self.send_command('AUTH', self.password)
             if nativestr(self.read_response()) != 'OK':
+                logs.error("Invalid Password")
                 raise AuthenticationError('Invalid Password')
 
         # if a database is specified, switch to it
