@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'users',
     'monitor',
     'loginfo',
-    # 'gunicorn',
+    'gunicorn',
 ]
 
 AUTH_USER_MODEL = 'users.DctUser'
