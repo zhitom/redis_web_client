@@ -1,8 +1,8 @@
 ## redis admin
 ### 安装
+#### 环境 python 2.7
 
 ```
-python 2.7 环境
 mkdir -p /data/wwwroot/ && cd /data/wwwroot
 git clone https://gitee.com/careyjike_173/redis_web_client.git redis_admin
 cd redis_admin && pip install -r requirements.txt
@@ -40,6 +40,10 @@ cd redis_admin && pip install -r requirements.txt
     'seperator': ':',
     'maxkeylen': 100
   }
+  
+  # 项目配置
+  DEBUG = False # 关闭debug
+  LOG_LEVEL = 'INFO' # 设置日志级别
   ```
   
 ### nginx
@@ -74,7 +78,8 @@ cd script && ./installl
 启动 `redis_admin`
 
 ```
-gunicorn -c funicorn.py redis_admin.wsgi
+chmod +x start.sh
+./start.sh start
 ```
 启动`nginx`
 
