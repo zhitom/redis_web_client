@@ -142,18 +142,22 @@ layui.use('table', function(){
     active[type] ? active[type].call(this) : '';
   });
   $('#clear').on('click', function () {
-      $.ajax({
-		      url: '/clear/db',
-		      dataType: 'json',
-		      type: 'post',
-		      data: {'csrfmiddlewaretoken': '{{ csrf_token }}', 'redis_id': {{ server_id }}, 'db_id': {{ db_id }}},
-		      success:function (datas) {
-				      layer.msg(datas.msg)
-          },
-		      error:function () {
-				      layer.msg('请求错误', {icon: 5})
-          }
-      })
+      layer.confirm('确定清空DB数据吗？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(){
+	        $.ajax({
+				      url: '/clear/db',
+				      dataType: 'json',
+				      type: 'post',
+				      data: {'csrfmiddlewaretoken': '{{ csrf_token }}', 'redis_id': {{ server_id }}, 'db_id': {{ db_id }}},
+				      success:function (datas) {
+						      layer.msg(datas.msg)
+		          },
+				      error:function () {
+						      layer.msg('请求错误', {icon: 5})
+		          }
+		      })
+			});
   });
 });
 
