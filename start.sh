@@ -3,20 +3,47 @@
 start() {
     gunicorn -c funicorn.py redis_admin.wsgi
     if [ $? -eq 0 ]; then
-        echo 'start [ ok ]'
+        echo 'start [ successful ]'
     else
-        echo 'start [ no ]'
+        echo 'start [ failed ]'
     fi
 }
 
 stop() {
-    pid=`cat /data/wwwroot/redis_admin/log/gunicorn.pid`
+    pid=`cat ./log/gunicorn.pid`
     kill ${pid}
     if [ $? -eq 0 ]; then
-        echo 'stop [ ok ]'
+        echo 'stop [ successful ]'
     else
-        echo 'stop [ no ]'
+        echo 'stop [ failed ]'
     fi
 }
 
-$1
+help() {
+    echo "Usage: $0 [ start | stop | restart ]"
+    exit 1
+}
+
+restart() {
+    stop && start
+}
+
+case $1 in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    help|--help|-h)
+        help
+        ;;
+    *)
+        echo "Usage: --help | -h | help"
+        exit 1
+        ;;
+esac
+exit 0
