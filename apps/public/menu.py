@@ -29,7 +29,10 @@ def Menu():
                 if info_dict.has_key("db%s" % i):
                     count = info_dict["db%s" % i]['keys']
                     m_tar = {"pId": id, "count": count, "name": "db%s" % i}
-                    me.append(m_tar)
+                else:
+                    count = 0
+                    m_tar = {"pId:": id, "count": count, "name": "db%s" % i}
+                me.append(m_tar)
             data_is['db'] = me
             data.append(data_is)
         m_index += 1
