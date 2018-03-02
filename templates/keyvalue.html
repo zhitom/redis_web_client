@@ -10,6 +10,9 @@
   <div class="layui-inline">
 	  <button class="layui-btn layui-btn-normal"><a href="/add/key/{{ server_name }}/">新增</a></button>
   </div>
+  <div class="layui-inline">
+	  <button class="layui-btn layui-btn-danger" id="clear">清空DB</button>
+  </div>
 	{% endif %}
 </div>
 
@@ -17,7 +20,8 @@
 <table class="layui-hide" id="LAY_table_user" lay-filter="user"></table>
 <script>
 layui.use('table', function(){
-  var table = layui.table;
+  var table = layui.table,
+  $ = layui.jquery;
 
   //方法级渲染
   table.render({
@@ -46,9 +50,6 @@ layui.use('table', function(){
       });
     }
   };
-  table.on('checkbox(user)', function(obj){
-    console.log(obj)
-  });
 
   table.on('tool(user)', function(obj){
     var data = obj.data;
@@ -139,6 +140,20 @@ layui.use('table', function(){
   $('.demoTable .layui-btn').on('click', function(){
     var type = $(this).data('type');
     active[type] ? active[type].call(this) : '';
+  });
+  $('#clear').on('click', function () {
+      $.ajax({
+		      url: '/clear/db',
+		      dataType: 'json',
+		      type: 'post',
+		      data: {'csrfmiddlewaretoken': '{{ csrf_token }}', 'redis_id': {{ server_id }}, 'db_id': {{ db_id }}},
+		      success:function (datas) {
+				      layer.msg(datas.msg)
+          },
+		      error:function () {
+				      layer.msg('请求错误', {icon: 5})
+          }
+      })
   });
 });
 

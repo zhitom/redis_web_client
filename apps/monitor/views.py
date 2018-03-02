@@ -11,6 +11,7 @@ from conf.conf import base, scan_batch
 from redis_admin import settings
 from public.menu import Menu
 from public.redis_api import check_connect, get_tmp_client
+from public.redis_api import get_cl
 from utils.utils import LoginRequiredMixin
 
 # Create your views here.
@@ -259,6 +260,9 @@ class DelKeyView(LoginRequiredMixin, View):
 
 
 class EditValueTableView(LoginRequiredMixin, View):
+    """
+    编辑value
+    """
     def get(self, request, edit_server_id, edit_db_id):
         menu = Menu()
         from public.redis_api import get_cl
@@ -354,7 +358,6 @@ class BgSaveView(LoginRequiredMixin, View):
     保存数据 bgsave
     """
     def get(self, request, bg_server_id):
-        from public.redis_api import get_cl
         cl, cur_server_index, cur_db_index = get_cl(redis_id=bg_server_id, db_id=0)
         cl.bgsave()
 
@@ -362,6 +365,9 @@ class BgSaveView(LoginRequiredMixin, View):
 
 
 class AddKeyView(LoginRequiredMixin, View):
+    """
+    添加数据
+    """
     def get(self, request, add_redis_id):
         menu = Menu()
         this_tab = 'string'
@@ -393,3 +399,22 @@ class AddKeyView(LoginRequiredMixin, View):
             ch_data.add_key(key=key, value=value, type=type)
 
         return HttpResponseRedirect('/redis' + add_redis_id + '/db' + db_id + '/')
+
+
+class ClearDbView(LoginRequiredMixin, View):
+    """
+    清空DB
+    """
+
+    def post(self, request):
+        data = {"code": 0, "msg": "successful", "data": ""}
+        redis_id = request.POST.get("redis_id", None)
+        db_id = request.POST.get("db_id", None)
+        try:
+            cl, cur_server_index, cur_db_index = get_cl(redis_id=redis_id, db_id=db_id)
+            cl.flushdb()
+        except Exception as e:
+            logs.error(e)
+            data["code"] = 1
+            data["msg"] = "failed"
+        return JsonResponse(data=data, safe=False)

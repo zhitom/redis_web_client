@@ -29,6 +29,7 @@ from monitor.views import (GetKeyView,
                            EditValueTableView,
                            BgSaveView,
                            AddKeyView,
+                           ClearDbView,
                            )
 
 urlpatterns = [
@@ -53,4 +54,5 @@ urlpatterns = [
     url(r'^change/user/', ChangeUser.as_view(), name='change_user'),
     url(r'^add/user/', AddUser.as_view(), name='add_user'),
     url(r'^add/key/redis(?P<add_redis_id>[0-9]+)/', AddKeyView.as_view(), name='add_key'),
+    url(r'^clear/db', ClearDbView.as_view(), name='clear_db'),
 ]
