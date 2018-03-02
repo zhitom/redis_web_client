@@ -8,7 +8,7 @@
   <button class="layui-btn" data-type="reload">搜索</button>
 	{% if user.permission == 0 or user.permission == 2 %}
   <div class="layui-inline">
-	  <button class="layui-btn layui-btn-normal"><a href="/add/key/{{ server_name }}/">新增</a></button>
+	  <button class="layui-btn layui-btn-normal"><a href="/add/key/{{ server_name }}/?db={{ db_id }}">新增</a></button>
   </div>
   <div class="layui-inline">
 	  <button class="layui-btn layui-btn-danger" id="clear">清空DB</button>

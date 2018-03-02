@@ -371,10 +371,12 @@ class AddKeyView(LoginRequiredMixin, View):
     def get(self, request, add_redis_id):
         menu = Menu()
         this_tab = 'string'
+        db_id = request.GET.get('db', None)
 
         return render(request, 'add_key.html', {
             'menu': menu,
-            'this_tab': this_tab
+            'this_tab': this_tab,
+            'db': db_id,
         })
 
     def post(self, request, add_redis_id):

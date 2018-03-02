@@ -20,4 +20,4 @@ loglevel = 'info' #日志级别，这个日志级别指的是错误日志的级�
 access_log_format = '%(t)s %(p)s %(h)s "%(r)s" %(s)s %(L)s %(b)s %(f)s" "%(a)s"'    #设置gunicorn访问日志格式，错误日志无法设置
 accesslog = "./log/gunicorn_access.log"      #访问日志文件
 errorlog = "./log/gunicorn_error.log"        #错误日志文件
-daemon = False
+daemon = True
