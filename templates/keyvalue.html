@@ -54,7 +54,7 @@ layui.use('table', function(){
   table.on('tool(user)', function(obj){
     var data = obj.data;
 		{#    获取value   #}
-	  layer.load();
+    layer.load();
     if(obj.event === 'detail'){
       $.ajax({
 		      url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/',
@@ -73,7 +73,11 @@ layui.use('table', function(){
           }
       });
     } else if(obj.event === 'del'){
-      layer.confirm('真的删除行么', function(index){
+      layer.confirm('真的删除么?', {
+          icon: 3,
+		      title: '提示',
+		      btn: ['确认','取消']
+      }, function(index){
         var del_data = {"server_id": {{ server_id }}, 'db_id': {{ db_id }}, 'key': data.key, 'csrfmiddlewaretoken': '{{ csrf_token }}' };
         $.ajax({
 		        url: '/del/key/',
@@ -96,6 +100,8 @@ layui.use('table', function(){
             }
         });
         layer.close(index);
+      }, function () {
+		      layer.closeAll('loading');
       });
     } else if(obj.event === 'edit'){
         window.location.href="/edit/redis{{ server_id }}/db{{ db_id }}?key=" + data.key;
