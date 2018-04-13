@@ -15,11 +15,11 @@ from users.models import DctUser
 
 class OperationInfoEditView(LoginRequiredMixin, View):
     """
-	编辑记录
-	"""
+    编辑记录
+    """
 
     def get(self, request):
-        menu = Menu()
+        menu = Menu(user=request.user)
 
         if request.GET.get('type', None) == 'json':
             "分页"
@@ -49,11 +49,11 @@ class OperationInfoEditView(LoginRequiredMixin, View):
 
 class OperationInfoDelView(LoginRequiredMixin, View):
     """
-	删除记录
-	"""
+    删除记录
+    """
 
     def get(self, request):
-        menu = Menu()
+        menu = Menu(user=request.user)
 
         if request.GET.get('type', None) == 'json':
             limit = int(request.GET.get('limit', 30))
@@ -102,7 +102,7 @@ class UserManageView(LoginRequiredMixin, View):
 
             return JsonResponse(data, safe=False)
 
-        menu = Menu()
+        menu = Menu(user=request.user)
 
         return render(request, 'user_manage.html', {
             'menu': menu,

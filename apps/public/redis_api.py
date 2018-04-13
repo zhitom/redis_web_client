@@ -18,11 +18,23 @@ from redis.exceptions import (
     ReadOnlyError
 )
 from redis._compat import nativestr
+from users.models import RedisConf
 
 client = None
 server_ip = None
 db_index = None
 logs = logging.getLogger('django')
+
+
+def get_redis_conf(index=None, user=None):
+    if index is None and user is not None:
+        return user.auths.all()
+    else:
+        try:
+            return RedisConf.objects.get(index=index)
+        except Exception as e:
+            logs.error(e)
+    return False
 
 
 def connect(*args, **kwargs):
@@ -35,16 +47,16 @@ def get_client(*args, **kwargs):
     global server_ip
     global db_index
     if args or kwargs:
-        if server_ip!=None and db_index!=None:
-            if kwargs['host']==server_ip and kwargs['db']==db_index:
+        if server_ip is not None and db_index is not None:
+            if kwargs['host'] == server_ip and kwargs['db'] == db_index:
                 pass
             else:
-                print 'switch conn...'
+                logs.info('switch conn...')
                 connect(*args, **kwargs)
                 server_ip = kwargs['host']
                 db_index = kwargs['db']
         else:
-            print 'init conn...'
+            logs.info('init conn...')
             connect(*args, **kwargs)
             server_ip = kwargs['host']
             db_index = kwargs['db']
@@ -108,13 +120,34 @@ def check_connect(host, port, password=None, socket_timeout=socket_timeout):
         return e
 
 
-def get_cl(redis_id, db_id):
+def check_redis_connect(index):
+    redis_conf = get_redis_conf(index=index)
+    try:
+        conn = Connection(host=redis_conf.host, port=redis_conf.port,
+                          password=redis_conf.password, socket_timeout=socket_timeout)
+        conn.connect()
+        return True
+    except Exception as e:
+        logs.error(e)
+        error = dict(
+            redis=redis_conf,
+            message=e,
+        )
+        return error
+
+
+def get_cl(redis_id, db_id=0):
     cur_server_index = int(redis_id)
     cur_db_index = int(db_id)
-    server = base['servers'][cur_server_index]
-    cl = get_client(host=server['host'], port=server['port'], db=cur_db_index,
-                    password=server.has_key('password') and server['password'] or None)
-    return cl, cur_server_index, cur_db_index
+    server = get_redis_conf(index=cur_server_index)
+    if server is not False:
+        if server.password is None:
+            cl = get_client(host=server.host, port=server.port, db=cur_db_index, password=None)
+        else:
+            cl = get_client(host=server.host, port=server.port, db=cur_db_index, password=server.password)
+        return cl, cur_server_index, cur_db_index
+    else:
+        return False
 
 
 class Connection(redis.Connection):

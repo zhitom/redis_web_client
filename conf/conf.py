@@ -9,24 +9,6 @@ LOG_LEVEL = 'INFO'
 
 # redis
 base = {
-    'servers': [
-        {
-            'index': 0,
-            'name': 'redis0',
-            'host': '10.0.20.203',
-            'port': 8000,
-            'password': '',
-            'databases': 16
-        },
-        {
-             'index': 1,
-             'name': 'redis1',
-             'host': '127.0.0.1',
-             'port': 6379,
-             'password': '',
-             'databases': 16
-        }
-    ],
     'seperator': ':',
     'maxkeylen': 100
 }

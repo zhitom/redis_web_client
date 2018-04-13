@@ -7,11 +7,10 @@ from django.core.urlresolvers import reverse
 import logging
 import time
 
-from conf.conf import base, scan_batch
-from redis_admin import settings
+from conf.conf import scan_batch
 from public.menu import Menu
-from public.redis_api import check_connect, get_tmp_client
-from public.redis_api import get_cl
+from public.redis_api import check_redis_connect
+from public.redis_api import get_cl, get_redis_conf
 from utils.utils import LoginRequiredMixin
 
 # Create your views here.
@@ -24,21 +23,19 @@ class GetRedisInfo(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        menu = Menu()
-        servers = base['servers']
+        menu = Menu(user=request.user)
+        servers = get_redis_conf(index=None, user=request.user)
         data = []
-        for server in servers:
-            status = check_connect(server['host'], server['port'],
-                                   password=server.has_key('password') and server['password'] or None)
+        for ser in servers:
+            status = check_redis_connect(index=ser.redis)
             if status is True:
-                host = {'host': server['host'], 'name': server['name']}
-                client = get_tmp_client(host=server['host'], port=server['port'],
-                                        password=server.has_key('password') and server['password'] or None)
+                client, cur_server_index, cur_db_index = get_cl(redis_id=ser.redis)
                 info_dict = client.info()
                 time_local = time.localtime(info_dict['rdb_last_save_time'])
                 dt = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
                 info_dict['rdb_last_save_time'] = dt
-                info_dict.update(host)
+                info_dict.update(host=client.connection_pool.connection_kwargs['host'])
+                info_dict.update(redis_id=ser.redis)
                 data.append(info_dict)
 
         return render(request, 'index.html', {
@@ -54,7 +51,7 @@ class RedisErrorHtmlView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        menu = Menu()
+        menu = Menu(user=request.user)
         return render(request, 'redis_error.html', {
             'menu': menu,
             'error': 'error',
@@ -67,14 +64,15 @@ class CheckRedisContent(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        servers = base['servers']
+        servers = get_redis_conf(index=None, user=request.user)
         list = []
-        for server in servers:
-            status = check_connect(server['host'], server['port'],
-                                   password=server.has_key('password') and server['password'] or None)
+        for ser in servers:
+            status = check_redis_connect(index=ser.redis)
+            # status = check_connect(server['host'], server['port'],
+            #                        password=server.has_key('password') and server['password'] or None)
             if status is not True:
-                info_dict = {'name': server['name'], 'host': server['host'], 'port': server['port'],
-                             'error': status.message}
+                info_dict = {'name': status["redis"].name, 'host': status["redis"].host, 'port': status["redis"].port,
+                             'error': status["message"].message}
                 list.append(info_dict)
         if len(list) != 0:
             data = {'code': 0, 'msg': '', 'data': list}
@@ -171,7 +169,7 @@ class GetIdView(LoginRequiredMixin, View):
     key列表
     """
     def get(self, request, server_id, id):
-        menu = Menu()
+        menu = Menu(user=request.user)
         server_name = 'redis' + server_id
         return render(request, 'keyvalue.html', {
             'server_id': server_id,
@@ -190,12 +188,9 @@ class ClientListView(LoginRequiredMixin, View):
     def get(self, request):
         client_id = request.GET.get('client_id', None)
         if client_id is not None:
-            server = base['servers'][int(client_id)]
-            status = check_connect(host=server['host'], port=server['port'],
-                                   password=server.has_key('password') and server['password'] or None)
+            status = check_redis_connect(index=int(client_id))
             if status is True:
-                client = get_tmp_client(host=server['host'], port=server['port'],
-                                        password=server.has_key('password') and server['password'] or None)
+                client, cur_server_index, cur_db_index = get_cl(redis_id=int(client_id))
                 client_list = client.client_list()
                 "分页"
                 limit = int(request.GET.get('limit', 30))
@@ -212,7 +207,7 @@ class ClientListView(LoginRequiredMixin, View):
 
 class ClientHtmlView(LoginRequiredMixin, View):
     def get(self, request, client_id):
-        menu = Menu()
+        menu = Menu(user=request.user)
 
         return render(request, 'client_list.html', {
             'client_id': client_id,
@@ -264,7 +259,7 @@ class EditValueTableView(LoginRequiredMixin, View):
     编辑value
     """
     def get(self, request, edit_server_id, edit_db_id):
-        menu = Menu()
+        menu = Menu(user=request.user)
         from public.redis_api import get_cl
         from public.data_view import get_value
         cl, cur_server_index, cur_db_index = get_cl(int(edit_server_id), int(edit_db_id))
@@ -296,7 +291,7 @@ class EditValueTableView(LoginRequiredMixin, View):
 
         cl, cur_server_index, cur_db_index = get_cl(int(edit_server_id), int(edit_db_id))
         ch_data = ChangeData(redis_id=edit_server_id, db_id=edit_db_id)
-        menu = Menu()
+        menu = Menu(user=request.user)
 
         key = request.GET.get('key', None)
         post_key_type = request.POST.get('Type', None)
@@ -369,7 +364,7 @@ class AddKeyView(LoginRequiredMixin, View):
     添加数据
     """
     def get(self, request, add_redis_id):
-        menu = Menu()
+        menu = Menu(user=request.user)
         this_tab = 'string'
         db_id = request.GET.get('db', None)
 

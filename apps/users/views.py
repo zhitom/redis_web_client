@@ -9,10 +9,11 @@ from django.core.urlresolvers import reverse
 from .models import DctUser
 from .forms import LoginForms
 
-from public.redis_api import check_connect
-from conf.conf import base
+from public.redis_api import check_redis_connect, get_redis_conf
 from utils.utils import LoginRequiredMixin
 from public.menu import Menu
+from users.models import Auth, RedisConf
+from django.http.response import JsonResponse
 
 
 # Create your views here.
@@ -52,10 +53,9 @@ class LoginViews(View):
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    servers = base['servers']
-                    for server in servers:
-                        status = check_connect(server['host'], server['port'],
-                                               password=server.has_key('password') and server['password'] or None)
+                    servers = get_redis_conf(index=None, user=request.user)
+                    for ser in servers:
+                        status = check_redis_connect(index=ser.redis)
                         if status is not True:
                             return HttpResponseRedirect(reverse("redis_error"))
                     else:
@@ -69,7 +69,7 @@ class LoginViews(View):
 
 class ChangeUser(LoginRequiredMixin, View):
     def get(self, request):
-        menu = Menu()
+        menu = Menu(user=request.user)
         id = request.GET.get('id', None)
         try:
             user = DctUser.objects.get(id=id)
@@ -82,7 +82,7 @@ class ChangeUser(LoginRequiredMixin, View):
         })
 
     def post(self, request):
-        menu = Menu()
+        menu = Menu(user=request.user)
 
         id = request.POST.get('id', None)
         username = request.POST.get('username', None)
@@ -116,14 +116,14 @@ class ChangeUser(LoginRequiredMixin, View):
 
 class AddUser(LoginRequiredMixin, View):
     def get(self, request):
-        menu = Menu()
+        menu = Menu(user=request.user)
 
         return render(request, 'add_user.html', {
             'menu': menu,
         })
 
     def post(self, request):
-        menu = Menu()
+        menu = Menu(user=request.user)
 
         username = request.POST.get('username', None)
         password1 = request.POST.get('password1', None)
@@ -142,3 +142,19 @@ class AddUser(LoginRequiredMixin, View):
                     'menu': menu,
                     'user_error': e,
                 })
+
+
+class TestView(View):
+    def get(self, request):
+        redis_conf_obj = RedisConf.objects.get(
+            name='redis2',
+        )
+
+        user_obj = DctUser.objects.get(username='carey')
+        pre_obj = Auth.objects.create(
+            redis=redis_conf_obj.id,
+            pre_auth=3,
+        )
+        user_obj.auths.add(pre_obj)
+        user_obj.save()
+        return JsonResponse(data=True, safe=False)

@@ -12,10 +12,6 @@
 			  </colgroup>
 			  <tbody>
 			    <tr>
-			      <td>名字</td>
-			      <td>{{ info.name }}</td>
-			    </tr>
-			    <tr>
 			      <td>IP地址</td>
 			      <td>{{ info.host }}</td>
 			    </tr>
@@ -41,7 +37,7 @@
 			    </tr>
 			    <tr>
 			      <td>客户端数量</td>
-			      <td>{{ info.connected_clients }}&nbsp&nbsp&nbsp&nbsp&nbsp<a href="/client/{{ info.name }}/" class="layui-btn layui-btn-small layui-btn-normal layui-btn-radius">查看详细客户端</a></td>
+			      <td>{{ info.connected_clients }}&nbsp&nbsp&nbsp&nbsp&nbsp<a href="/client/{{ info.redis_id }}/" class="layui-btn layui-btn-small layui-btn-normal layui-btn-radius">查看详细客户端</a></td>
 			    </tr>
 			    <tr>
 			      <td>阻塞的客户端数</td>
@@ -49,7 +45,7 @@
 			    </tr>
 			    <tr>
 			      <td>数据保存时间</td>
-			      <td>{{ info.rdb_last_save_time }}&nbsp&nbsp&nbsp&nbsp&nbsp<a href="/bgsave/{{ info.name }}/" class="layui-btn layui-btn-small layui-btn-normal layui-btn-radius">保存数据</a></td>
+			      <td>{{ info.rdb_last_save_time }}&nbsp&nbsp&nbsp&nbsp&nbsp<a href="/bgsave/{{ info.redis_id }}/" class="layui-btn layui-btn-small layui-btn-normal layui-btn-radius">保存数据</a></td>
 			    </tr>
 			  </tbody>
 			</table>
