@@ -27,7 +27,7 @@ class Auth(models.Model):
         (2, u'查看, 编辑'),
         (3, u'查看, 编辑, 删除'),
     )
-    redis = models.IntegerField(unique=True, verbose_name=u'redis配置')
+    redis = models.IntegerField(verbose_name=u'redis配置')
     pre_auth = models.IntegerField(default=1, choices=PREMISSION_CHOICES, verbose_name=u"权限级别")
 
     class Meta:
@@ -38,7 +38,6 @@ class Auth(models.Model):
 
 class DctUser(AbstractUser):
     img = models.CharField(default='/static/img/default.jpg', max_length=200, verbose_name=u'用户头像')
-    # permission = models.IntegerField(default=0, verbose_name=u"用户权限(0:超级, 1:查看, 2:编辑,删除)")
     auths = models.ManyToManyField(Auth, default=None, null=True, blank=True)
 
     class Meta:

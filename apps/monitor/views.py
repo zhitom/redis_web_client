@@ -12,7 +12,7 @@ from public.menu import Menu
 from public.redis_api import check_redis_connect
 from public.redis_api import get_cl, get_redis_conf
 from utils.utils import LoginRequiredMixin
-
+from public.user_premission import object_user_premission
 # Create your views here.
 logs = logging.getLogger('django')
 
@@ -23,6 +23,7 @@ class GetRedisInfo(LoginRequiredMixin, View):
     """
 
     def get(self, request):
+        # print request.META["HTTP_REFERER"]
         menu = Menu(user=request.user)
         servers = get_redis_conf(index=None, user=request.user)
         data = []
@@ -68,8 +69,6 @@ class CheckRedisContent(LoginRequiredMixin, View):
         list = []
         for ser in servers:
             status = check_redis_connect(index=ser.redis)
-            # status = check_connect(server['host'], server['port'],
-            #                        password=server.has_key('password') and server['password'] or None)
             if status is not True:
                 info_dict = {'name': status["redis"].name, 'host': status["redis"].host, 'port': status["redis"].port,
                              'error': status["message"].message}
@@ -170,6 +169,8 @@ class GetIdView(LoginRequiredMixin, View):
     """
     def get(self, request, server_id, id):
         menu = Menu(user=request.user)
+        redis_id = request.GET.get("redis", None)
+        db_id = request.GET.get("db", None)
         server_name = 'redis' + server_id
         return render(request, 'keyvalue.html', {
             'server_id': server_id,

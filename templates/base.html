@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/layui.css' %}">
 {% block css %}{% endblock %}
 <script src="{% static 'layui.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
 {% block headerjs %}{% endblock %}
 </head>
 <body>
@@ -18,7 +19,6 @@
     <ul class="layui-nav layui-layout-left">
       <li class="layui-nav-item {% if console %}layui-this{% endif %}"><a href="/">控制台</a></li>
       <li class="layui-nav-item {% if error %}layui-this{% endif %}"><a href="/error/">连接错误</a></li>
-      {% if user.permission == 0 or user.permission == 2 %}
       <li class="layui-nav-item {% if record %}layui-this{% endif %}">
 	      <a href="javascript:;">记录</a>
         <dl class="layui-nav-child">
@@ -26,8 +26,7 @@
           <dd><a href="{% url 'operation_del' %}">删除记录</a></dd>
         </dl>
       </li>
-      {% endif %}
-      {% if user.permission == 0 %}
+      {% if user.is_superuser is True %}
       <li class="layui-nav-item {% if manage %}layui-this{% endif %}"><a href="/user/manage/">用户管理</a></li>
       {% endif %}
     </ul>
@@ -78,11 +77,16 @@
   </div>
 </div>
 {% block endjs %}{% endblock %}
+
 <script>
 //JavaScript代码区域
 layui.use('element', function(){
-  var element = layui.element;
-
+  var element = layui.element,
+  csrftoken = Cookies.get('csrftoken'),
+  $ = layui.jquery;
+  $.ajaxSetup({
+		  headers: {'X-CSRFToken': csrftoken}
+  });
 });
 </script>
 </body>

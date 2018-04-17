@@ -6,14 +6,12 @@
     <input class="layui-input" name="id" id="demoReload" autocomplete="off">
   </div>
   <button class="layui-btn" data-type="reload">搜索</button>
-	{% if user.permission == 0 or user.permission == 2 %}
   <div class="layui-inline">
 	  <button class="layui-btn layui-btn-normal"><a href="/add/key/{{ server_name }}/?db={{ db_id }}">新增</a></button>
   </div>
   <div class="layui-inline">
 	  <button class="layui-btn layui-btn-danger" id="clear">清空DB</button>
   </div>
-	{% endif %}
 </div>
 
 
@@ -21,7 +19,11 @@
 <script>
 layui.use('table', function(){
   var table = layui.table,
+  localdata = layui.data('premission'),
+	auth = localdata.redis{{ server_id }},
   $ = layui.jquery;
+
+	console.log(auth);
 
   //方法级渲染
   table.render({
@@ -73,38 +75,54 @@ layui.use('table', function(){
           }
       });
     } else if(obj.event === 'del'){
-      layer.confirm('真的删除么?', {
-          icon: 3,
-		      title: '提示',
-		      btn: ['确认','取消']
-      }, function(index){
-        var del_data = {"server_id": {{ server_id }}, 'db_id': {{ db_id }}, 'key': data.key, 'csrfmiddlewaretoken': '{{ csrf_token }}' };
-        $.ajax({
-		        url: '/del/key/',
-		        dataType: 'json',
-		        type: 'post',
-		        data: del_data,
-		        success:function (del_datas) {
-				        layer.closeAll('loading');
-		            if(del_datas.code === 0){
-                  obj.del();
-                  layer.msg(del_datas.msg)
-		            }
-		            else{
-		                layer.msg(del_datas.msg)
-		            }
-            },
-            error:function () {
-		            layer.closeAll('loading');
-		            layer.msg('请求错误', {icon: 5})
-            }
-        });
-        layer.close(index);
-      }, function () {
-		      layer.closeAll('loading');
-      });
+      if(auth === 3) {
+          layer.confirm('真的删除么?', {
+              icon: 3,
+              title: '提示',
+              btn: ['确认', '取消']
+          }, function (index) {
+              var del_data = {
+                  "server_id": {{ server_id }},
+                  'db_id': {{ db_id }},
+                  'key': data.key
+
+              };
+              $.ajax({
+                  url: '/del/key/',
+                  dataType: 'json',
+                  type: 'post',
+                  data: del_data,
+                  success: function (del_datas) {
+                      layer.closeAll('loading');
+                      if (del_datas.code === 0) {
+                          obj.del();
+                          layer.msg(del_datas.msg)
+                      }
+                      else {
+                          layer.msg(del_datas.msg)
+                      }
+                  },
+                  error: function () {
+                      layer.closeAll('loading');
+                      layer.msg('请求错误', {icon: 5})
+                  }
+              });
+              layer.close(index);
+          }, function () {
+              layer.closeAll('loading');
+          });
+      } else {
+          layer.msg("您没有权限噢 😯");
+		      layer.closeAll('loading')
+      }
     } else if(obj.event === 'edit'){
-        window.location.href="/edit/redis{{ server_id }}/db{{ db_id }}?key=" + data.key;
+        if(auth === 2) {
+            window.location.href = "/edit/redis{{ server_id }}/db{{ db_id }}?key=" + data.key;
+        } else if(auth === 3){
+            window.location.href = "/edit/redis{{ server_id }}/db{{ db_id }}?key=" + data.key;
+        } else {
+            layer.msg("您没有权限噢 😯");
+        }
     } else if(obj.event === 'edit_ttl'){
         $.ajax({
 		      url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/?type=ttl',
@@ -122,7 +140,7 @@ layui.use('table', function(){
 				              url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/?type=ttl',
 				              dataType: 'json',
 				              type: 'post',
-				              data: {'csrfmiddlewaretoken': '{{ csrf_token }}', 'ttl': value},
+				              data: {'ttl': value},
 				              success:function (datas) {
 						              layer.closeAll('loading');
 						              layer.msg(datas.msg);
@@ -148,37 +166,33 @@ layui.use('table', function(){
     active[type] ? active[type].call(this) : '';
   });
   $('#clear').on('click', function () {
-      layer.confirm('确定清空DB数据吗？', {
-			  btn: ['确定','取消'] //按钮
-			}, function(){
-	        $.ajax({
-				      url: '/clear/db',
-				      dataType: 'json',
-				      type: 'post',
-				      data: {'csrfmiddlewaretoken': '{{ csrf_token }}', 'redis_id': {{ server_id }}, 'db_id': {{ db_id }}},
-				      success:function (datas) {
-						      layer.msg(datas.msg)
-		          },
-				      error:function () {
-						      layer.msg('请求错误', {icon: 5})
-		          }
-		      })
-			});
+      if (auth === 3) {
+          layer.confirm('确定清空DB数据吗？', {
+              btn: ['确定', '取消'] //按钮
+          }, function () {
+              $.ajax({
+                  url: '/clear/db',
+                  dataType: 'json',
+                  type: 'post',
+                  data: {'redis_id': {{ server_id }}, 'db_id': {{ db_id }}},
+                  success: function (datas) {
+                      layer.msg(datas.msg)
+                  },
+                  error: function () {
+                      layer.msg('请求错误', {icon: 5})
+                  }
+              })
+          });
+      }
   });
 });
 
 </script>
-	<script type="text/html" id="barDemo">
+<script type="text/html" id="barDemo">
   <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="detail">查看</a>
-
-  {% if user.permission == 0 or user.permission == 2 %}
   <a class="layui-btn layui-btn-mini" lay-event="edit_ttl">TTL</a>
   <a class="layui-btn layui-btn-mini layui-btn-warm" lay-event="edit">编辑</a>
-  {% endif %}
-
-  {% if user.permission == 0 or user.permission == 2 %}
   <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
-	{% endif %}
 
 </script>
 {% endblock %}

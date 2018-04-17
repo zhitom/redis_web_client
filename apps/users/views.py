@@ -14,7 +14,7 @@ from utils.utils import LoginRequiredMixin
 from public.menu import Menu
 from users.models import Auth, RedisConf
 from django.http.response import JsonResponse
-
+from conf import logs
 
 # Create your views here.
 
@@ -26,6 +26,7 @@ class CustomBackend(ModelBackend):
             if user.check_password(password):
                 return user
         except Exception as e:
+            logs.error(e)
             return None
 
 
@@ -44,6 +45,11 @@ class LoginViews(View):
         return render(request, 'login.html', {})
 
     def post(self, request):
+        data = dict(
+            code=0,
+            msg=u"登录成功，即将跳转...",
+            data="",
+        )
         login_form = LoginForms(request.POST)
         nexts = request.get_full_path(force_append_slash=True)
         if login_form.is_valid():
@@ -54,17 +60,19 @@ class LoginViews(View):
                 if user.is_active:
                     login(request, user)
                     servers = get_redis_conf(index=None, user=request.user)
+                    user_premission = dict()
                     for ser in servers:
-                        status = check_redis_connect(index=ser.redis)
-                        if status is not True:
-                            return HttpResponseRedirect(reverse("redis_error"))
-                    else:
-                        return HttpResponseRedirect(reverse("index"))
+                        redis_name = RedisConf.objects.get(id=ser.redis)
+                        user_premission[redis_name.name] = ser.pre_auth
+                    data["data"] = user_premission
+                    return JsonResponse(data)
                 else:
-                    return render(request, "login.html", {"msg": u"用户未激活"})
-            else:
-                return render(request, "login.html", {"msg": u"用户名或密码错误！"})
-        return render(request, "login.html", {'msg': 'error'})
+                    data["code"] = 1
+                    data["msg"] = u"用户未激活"
+                    return JsonResponse(data)
+        data["code"] = 2
+        data["msg"] = u"用户名或密码错误"
+        return JsonResponse(data)
 
 
 class ChangeUser(LoginRequiredMixin, View):
@@ -73,53 +81,121 @@ class ChangeUser(LoginRequiredMixin, View):
         id = request.GET.get('id', None)
         try:
             user = DctUser.objects.get(id=id)
+            auth = get_redis_conf(index=None, user=user)
+            redis = RedisConf.objects.all()
+            return render(request, 'change_user.html', {
+                'menu': menu,
+                'user_info': user,
+                'auth': auth,
+                'rediss': redis,
+            })
         except Exception as e:
-            user_error = e
-
-        return render(request, 'change_user.html', {
-            'menu': menu,
-            'user_info': user,
-        })
+            logs.error(u"修改用户信息: id:{0},msg:{1}".format(id, e))
+            return render(request, 'change_user.html', {
+                'error': e
+            })
 
     def post(self, request):
         menu = Menu(user=request.user)
 
         id = request.POST.get('id', None)
-        username = request.POST.get('username', None)
         password1 = request.POST.get('password1', None)
         password2 = request.POST.get('password2', None)
         email = request.POST.get('email', None)
-        permission = int(request.POST.get('permission', None))
-        user_error = ''
+        is_superuser = request.POST.get('is_superuser', None)
+
+        rediss = RedisConf.objects.all()
+        user = DctUser.objects.get(id=id)
+
+        for re in rediss:
+            re_id = request.POST.get(re.name, None)
+            # 判断是否获取到值
+            if re_id is None:
+                continue
+
+            # 值是否为空
+            elif re_id == '':
+                try:
+                    # ''为删除权限
+                    user.auths.get(redis=re.id).delete()
+                except Exception as e:
+                    logs.error(u"删除权限失败:user_id:{0},redis:{1},msg:{2}".format(id,re.id,e))
+                continue
+
+            pre_auth = int(re_id)  # 权限数
+
+            # 用户所有权限
+            user_redis = []
+            for i in user.auths.all():
+                user_redis.append(i.redis)
+
+            # 判断用户是否拥有该redis的权限，没有就创建，有及更新
+            if re.id not in user_redis:
+                try:
+                    pre_obj = Auth.objects.get(redis=re.id, pre_auth=pre_auth)
+                except Exception as e:
+                    pre_obj = Auth.objects.create(
+                        redis=re.id,
+                        pre_auth=pre_auth
+                    )
+                user.auths.add(pre_obj)
+                user.save()
+            else:
+                if user.auths.get(redis=re.id).pre_auth != pre_auth:
+                    try:
+                        pre_obj = Auth.objects.get(redis=re.id, pre_auth=pre_auth)
+
+                    except Exception as e:
+                        pre_obj = Auth.objects.create(
+                            redis=re.id,
+                            pre_auth=pre_auth
+                        )
+                    finally:
+                        user_pre = user.auths.remove(user.auths.get(redis=re.id))
+                        user.auths.add(pre_obj)
+                        user.save()
+
+        error = ''
 
         try:
             user = DctUser.objects.get(id=id)
+
+            # 是否超级用户
+            if is_superuser is not None:
+                user.is_staff = True
+                user.is_superuser = True
+            else:
+                user.is_staff = False
+                user.is_superuser = False
+
+            # 修改密码
             if password1 and password2:
                 if password1 == password2:
                     user.set_password(password1)
                 else:
-                    user_error = '密码不一致'
+                    error = '密码不一致'
 
             user.email = email
-            user.permission = permission
             user.save()
 
         except Exception as e:
-            user_error = e
+            error = e
 
         return render(request, 'change_user.html', {
             'menu': menu,
             'user_info': user,
-            'user_error': user_error
+            'error': error
         })
 
 
 class AddUser(LoginRequiredMixin, View):
     def get(self, request):
         menu = Menu(user=request.user)
+        redis = RedisConf.objects.all()
 
         return render(request, 'add_user.html', {
             'menu': menu,
+            'rediss': redis,
         })
 
     def post(self, request):
@@ -129,13 +205,36 @@ class AddUser(LoginRequiredMixin, View):
         password1 = request.POST.get('password1', None)
         password2 = request.POST.get('password2', None)
         email = request.POST.get('email', None)
-        permission = request.POST.get('permission', None)
+        is_superuser = request.POST.get('is_superuser', None)
 
-        if username and email and permission and password1 == password2:
+        if username and email and password1 == password2:
             try:
-                user = DctUser.objects.create_user(username=username, email=email, password=password1)
-                user.permission = permission
-                user.save()
+
+                # 是否超级用户
+                if is_superuser is None:
+                    user = DctUser.objects.create_user(username=username, email=email, password=password1)
+                else:
+                    user = DctUser.objects.create_superuser(username=username, email=email, password=password1)
+
+                # 添加权限
+                rediss = RedisConf.objects.all()
+
+                for re in rediss:
+                    re_id = request.POST.get(re.name, None)
+                    # 判断是否获取到值
+                    if re_id is None or re_id == '':
+                        continue
+
+                    pre_auth = int(request.POST.get(re.name, None))  # 权限数
+                    try:
+                        auth = Auth.objects.get(redis=re.id, pre_auth=pre_auth)
+                        user.auths.add(auth)
+                        user.save()
+                    except Exception as e:
+                        auth = Auth.objects.create(redis=re.id, pre_auth=pre_auth)
+                    user.auths.add(auth)
+                    user.save()
+
                 return HttpResponseRedirect(reverse("user_manage"))
             except Exception as e:
                 return render(request, 'add_user.html', {
@@ -146,15 +245,15 @@ class AddUser(LoginRequiredMixin, View):
 
 class TestView(View):
     def get(self, request):
-        redis_conf_obj = RedisConf.objects.get(
-            name='redis2',
-        )
-
-        user_obj = DctUser.objects.get(username='carey')
-        pre_obj = Auth.objects.create(
-            redis=redis_conf_obj.id,
-            pre_auth=3,
-        )
-        user_obj.auths.add(pre_obj)
-        user_obj.save()
+        # redis_conf_obj = RedisConf.objects.get(
+        #     name='redis2',
+        # )
+        #
+        # user_obj = DctUser.objects.get(username='carey')
+        # pre_obj = Auth.objects.create(
+        #     redis=redis_conf_obj.id,
+        #     pre_auth=3,
+        # )
+        # user_obj.auths.add(pre_obj)
+        # user_obj.save()
         return JsonResponse(data=True, safe=False)

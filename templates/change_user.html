@@ -34,20 +34,37 @@
     </div>
   </div>
   <div class="layui-form-item">
-    <label class="layui-form-label">权限</label>
+    <label class="layui-form-label">是否超级管理员</label>
     <div class="layui-input-block">
-      <select name="permission" lay-verify="required">
-        <option value="{{ user_info.permission }}">{% if user_info.permission == 0 %}超级管理员{% elif user_info.permission == 1 %}普通用户{% elif user_info.permission == 2 %}高级用户{% endif %}</option>
-        <option value="0">超级管理员</option>
-        <option value="1">普通用户</option>
-        <option value="2">高级用户</option>
+	    {% if user_info.is_superuser is True %}
+        <input type="checkbox" checked="" name="is_superuser" lay-skin="switch" lay-text="True|False">
+	    {% else %}
+		    <input type="checkbox" name="is_superuser" lay-skin="switch" lay-text="True|False">
+	    {% endif %}
+    </div>
+  </div>
+  {% for redis in rediss %}
+  <div class="layui-form-item">
+    <label class="layui-form-label">{{ redis.name }}</label>
+    <div class="layui-input-block">
+      <select name="{{ redis.name }}">
+      {% for a in auth %}
+	      {% if a.redis == redis.id %}
+	      <option value="{{ a.pre_auth }}">{% if a.pre_auth == 1 %}查看{% elif a.pre_auth == 2 %}编辑{% elif a.pre_auth == 3 %}删除{% endif %}</option>
+	      {% endif %}
+      {% endfor %}
+        <option value="">无权限</option>
+        <option value="1">查看</option>
+        <option value="2">编辑</option>
+        <option value="3">删除</option>
       </select>
     </div>
   </div>
-	{% if user_error %}
+  {% endfor %}
+	{% if error %}
 	<div class="layui-form-item">
 		<div>
-      <label class="layui-input-block">提示：{{ user_error }}</label>
+      <label class="layui-input-block">提示：{{ error }}</label>
 		</div>
   </div>
 {% endif %}
