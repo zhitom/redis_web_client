@@ -69,6 +69,7 @@
 		layui.use('element', function(){
 		  var element = layui.element;
 		  var csrftoken = Cookies.get('csrftoken');
+		  Cookies.set('csrftoken', '{{ csrf_token }}');
 		  $.ajaxSetup({
 				  headers: {'X-CSRFToken': csrftoken}
 		  });
