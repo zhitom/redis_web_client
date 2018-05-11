@@ -6,6 +6,7 @@ from django.contrib.auth.backends import ModelBackend
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.http.response import JsonResponse
 from .models import DctUser
 from .forms import LoginForms
 
@@ -13,7 +14,8 @@ from public.redis_api import check_redis_connect, get_redis_conf
 from utils.utils import LoginRequiredMixin
 from public.menu import Menu
 from users.models import Auth, RedisConf
-from django.http.response import JsonResponse
+from public.sendmail import send_email
+from conf.conf import mail_receivers
 from conf import logs
 
 # Create your views here.
@@ -59,7 +61,7 @@ class LoginViews(View):
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    servers = get_redis_conf(index=None, user=request.user)
+                    servers = get_redis_conf(name=None, user=request.user)
                     user_premission = dict()
                     for ser in servers:
                         redis_name = RedisConf.objects.get(id=ser.redis)
@@ -81,7 +83,7 @@ class ChangeUser(LoginRequiredMixin, View):
         id = request.GET.get('id', None)
         try:
             user = DctUser.objects.get(id=id)
-            auth = get_redis_conf(index=None, user=user)
+            auth = get_redis_conf(name=None, user=user)
             redis = RedisConf.objects.all()
             return render(request, 'change_user.html', {
                 'menu': menu,
@@ -241,6 +243,38 @@ class AddUser(LoginRequiredMixin, View):
                     'menu': menu,
                     'user_error': e,
                 })
+
+
+class UserRegisterView(View):
+    def get(self, request):
+        return render(request, 'register.html', {})
+
+    def post(self, request):
+        username = request.POST.get('username', None)
+        password1 = request.POST.get('password1', None)
+        password2 = request.POST.get('password2', None)
+        email = request.POST.get('email', None)
+        data = dict(
+            code=1,
+            msg="",
+            data=""
+        )
+        if username is not None and password1 == password2 and email is not None:
+            try:
+                user = DctUser.objects.create_user(username=username, email=email, password=password1)
+                send_email("用户注册", u"用户:{0}，邮箱:{1} \n\t注册redis管理平台请分配权限".format(username, email),
+                           receivers=mail_receivers)
+                data["code"] = 0
+                data["msg"] = "注册成功,联系管理员分配权限中。"
+            except Exception as e:
+                data["code"] = 1
+                data["msg"] = '{0}'.format(e)
+        elif password1 != password2:
+            data["msg"] = "密码不一致"
+        else:
+            data["code"] = 1
+            data["msg"] = "error"
+        return JsonResponse(data=data, safe=False)
 
 
 class TestView(View):

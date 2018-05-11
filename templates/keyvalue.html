@@ -7,7 +7,7 @@
   </div>
   <button class="layui-btn" data-type="reload">搜索</button>
   <div class="layui-inline">
-	  <button class="layui-btn layui-btn-normal"><a href="/add/key/{{ server_name }}/?db={{ db_id }}">新增</a></button>
+	  <button class="layui-btn layui-btn-normal"><a href="/add/key/{{ redis_name }}/?db={{ db_id }}">新增</a></button>
   </div>
   <div class="layui-inline">
 	  <button class="layui-btn layui-btn-danger" id="clear">清空DB</button>
@@ -20,15 +20,15 @@
 layui.use('table', function(){
   var table = layui.table,
   localdata = layui.data('premission'),
-	auth = localdata.redis{{ server_id }},
-  $ = layui.jquery;
+	auth = localdata.{{ redis_name }},
+    $ = layui.jquery;
 
 	console.log(auth);
 
   //方法级渲染
   table.render({
     elem: '#LAY_table_user'
-    ,url: '/get_key/{{ server_id }}/{{ db_id }}/'
+    ,url: '/get_key/{{ redis_name }}/{{ db_id }}/'
     ,cols: [[
       {checkbox: true, fixed: true}
       ,{field:'key', title: 'dbkey', width:1000, sort: true}
@@ -59,7 +59,7 @@ layui.use('table', function(){
     layer.load();
     if(obj.event === 'detail'){
       $.ajax({
-		      url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/',
+		      url: '/view/{{ redis_name }}/{{ db_id }}/' + data.key + '/',
 		      dataType: 'json',
 		      type: 'get',
 		      success:function (datas) {
@@ -82,7 +82,7 @@ layui.use('table', function(){
               btn: ['确认', '取消']
           }, function (index) {
               var del_data = {
-                  "server_id": {{ server_id }},
+                  "redis_name": '{{ redis_name }}',
                   'db_id': {{ db_id }},
                   'key': data.key
 
@@ -117,15 +117,16 @@ layui.use('table', function(){
       }
     } else if(obj.event === 'edit'){
         if(auth === 2) {
-            window.location.href = "/edit/redis{{ server_id }}/db{{ db_id }}?key=" + data.key;
+            window.location.href = "/edit/{{ redis_name }}/db{{ db_id }}?key=" + data.key;
         } else if(auth === 3){
-            window.location.href = "/edit/redis{{ server_id }}/db{{ db_id }}?key=" + data.key;
+            window.location.href = "/edit/{{ redis_name }}/db{{ db_id }}?key=" + data.key;
         } else {
             layer.msg("您没有权限噢 😯");
+            layer.closeAll('loading')
         }
     } else if(obj.event === 'edit_ttl'){
         $.ajax({
-		      url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/?type=ttl',
+		      url: '/view/{{ redis_name }}/{{ db_id }}/' + data.key + '/?type=ttl',
 		      dataType: 'json',
 		      type: 'get',
 		      success:function (datas) {
@@ -137,7 +138,7 @@ layui.use('table', function(){
 		          }, function (value, index, elem) {
 		              layer.load();
 		              $.ajax({
-				              url: '/view/{{ server_id }}/{{ db_id }}/' + data.key + '/?type=ttl',
+				              url: '/view/{{ redis_name }}/{{ db_id }}/' + data.key + '/?type=ttl',
 				              dataType: 'json',
 				              type: 'post',
 				              data: {'ttl': value},
@@ -174,7 +175,7 @@ layui.use('table', function(){
                   url: '/clear/db',
                   dataType: 'json',
                   type: 'post',
-                  data: {'redis_id': {{ server_id }}, 'db_id': {{ db_id }}},
+                  data: {'redis_name': '{{ redis_name }}', 'db_id': {{ db_id }}},
                   success: function (datas) {
                       layer.msg(datas.msg)
                   },

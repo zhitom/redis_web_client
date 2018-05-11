@@ -13,7 +13,7 @@
       <input type="text" name="type" required lay-verify="required" placeholder="" readonly="readonly" value="{{ data.type }}" autocomplete="off" class="layui-input">
 	    {% csrf_token %}
 	    <input type="hidden" name="db_id" value="{{ data.db }}">
-	    <input type="hidden" name="redis_id" value="{{ redis_id }}">
+	    <input type="hidden" name="redis_name" value="{{ redis_name }}">
     </div>
     <div class="layui-form-mid layui-word-aux"></div>
   </div>

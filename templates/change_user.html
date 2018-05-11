@@ -4,6 +4,7 @@
 {% endblock %}
 
 {% block content %}
+{% if user.is_superuser is True %}
 <form class="layui-form" action="" method="post">
   <div class="layui-form-item">
     <label class="layui-form-label">用户名</label>
@@ -109,4 +110,16 @@ layui.use('form', function(){
   });
 });
 </script>
+{% else %}
+    <script>
+    layui.use('layer', function(){
+      var layer = layui.layer;
+      layer.confirm('您没有权限，请联系管理员授权。', {
+          btn: ['确认']
+      }, function () {
+          window.location.href="/";
+      })
+    });
+    </script>
+{% endif %}
 {% endblock %}

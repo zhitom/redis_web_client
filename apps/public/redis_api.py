@@ -26,12 +26,12 @@ db_index = None
 logs = logging.getLogger('django')
 
 
-def get_redis_conf(index=None, user=None):
-    if index is None and user is not None:
+def get_redis_conf(name=None, user=None):
+    if name is None and user is not None:
         return user.auths.all()
     else:
         try:
-            return RedisConf.objects.get(index=index)
+            return RedisConf.objects.get(name=name)
         except Exception as e:
             logs.error(e)
     return False
@@ -96,14 +96,14 @@ def get_all_keys_dict(client=None):
     return me
 
 
-def get_all_keys_tree(client=None,key='*', cursor=0, min_num=None, max_num=None):
+def get_all_keys_tree(client=None, key='*', cursor=0, min_num=None, max_num=None):
     client = client or get_client()
     key = key or '*'
-    if key=='*':
-        next_cursor,key_all = client.scan(cursor=cursor, match=key, count=scan_batch)
+    if key == '*':
+        next_cursor, key_all = client.scan(cursor=cursor, match=key, count=scan_batch)
     else:
-        key = '*%s*'%key
-        next_cursor,key_all = 0, client.keys(key)
+        key = '*%s*' % key
+        next_cursor, key_all = 0, client.keys(key)
     key_all = key_all[min_num:max_num]
     key_all.sort()
     return key_all
@@ -120,8 +120,8 @@ def check_connect(host, port, password=None, socket_timeout=socket_timeout):
         return e
 
 
-def check_redis_connect(index):
-    redis_conf = get_redis_conf(index=index)
+def check_redis_connect(name):
+    redis_conf = get_redis_conf(name)
     try:
         conn = Connection(host=redis_conf.host, port=redis_conf.port,
                           password=redis_conf.password, socket_timeout=socket_timeout)
@@ -136,16 +136,15 @@ def check_redis_connect(index):
         return error
 
 
-def get_cl(redis_id, db_id=0):
-    cur_server_index = int(redis_id)
+def get_cl(redis_name, db_id=0):
     cur_db_index = int(db_id)
-    server = get_redis_conf(index=cur_server_index)
+    server = get_redis_conf(name=redis_name)
     if server is not False:
         if server.password is None:
             cl = get_client(host=server.host, port=server.port, db=cur_db_index, password=None)
         else:
             cl = get_client(host=server.host, port=server.port, db=cur_db_index, password=server.password)
-        return cl, cur_server_index, cur_db_index
+        return cl, redis_name, cur_db_index
     else:
         return False
 

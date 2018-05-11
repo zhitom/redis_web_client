@@ -12,7 +12,7 @@ def Menu(user):
     菜单导航
     :return:
     """
-    servers = get_redis_conf(index=None, user=user)
+    servers = get_redis_conf(name=None, user=user)
     data = []
     m_index = 0
     for ser in servers:
@@ -20,11 +20,14 @@ def Menu(user):
 
         redis_obj = RedisConf.objects.get(index=ser.redis)
         data_is = {'name': redis_obj.name, 'status': '0', 'db': ''}
-        client, cur_server_index, cur_db_index = get_cl(redis_id=ser.redis)
-        info_dict = client.info()
+        client, redis_name, cur_db_index = get_cl(redis_name=redis_obj.name)
+        try:
+            info_dict = client.info()
+        except Exception as e:
+            info_dict = dict(error=e)
         me = []
         for i in range(redis_obj.database):
-            if info_dict.has_key("db%s" % i):
+            if "db{0}".format(i) in info_dict:
                 count = info_dict["db%s" % i]['keys']
                 m_tar = {"pId": id, "count": count, "name": "db%s" % i}
             else:

@@ -85,13 +85,13 @@ WSGI_APPLICATION = 'redis_admin.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'redis_admin',
-        # 'HOST': '127.0.0.1',
-        # 'USER': 'root',
-        # 'PASSWORD': 'root',
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'sqlite',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'redis_admin',
+        'HOST': '127.0.0.1',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': 'sqlite',
     }
 }
 
