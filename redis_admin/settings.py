@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 import sys
-from conf.conf import DEBUG, LOG_LEVEL
+from conf.conf import DEBUG, LOG_LEVEL, database
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -86,10 +86,11 @@ WSGI_APPLICATION = 'redis_admin.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'redis_admin',
-        'HOST': '127.0.0.1',
-        'USER': 'root',
-        'PASSWORD': 'root',
+        'NAME': database["name"],
+        'HOST': database["host"],
+        'USER': database["username"],
+        'PASSWORD': database["password"],
+        'PORT': database["port"]
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': 'sqlite',
     }
