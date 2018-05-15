@@ -46,11 +46,13 @@
       <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
       <ul class="layui-nav layui-nav-tree"  lay-filter="test">
 	      {% for server in menu %}
-        <li class="layui-nav-item {% ifequal server.name server_name %}layui-nav-itemed{% endifequal %}">
+        <li class="layui-nav-item {% if redis_name %}{% ifequal server.name redis_name %}layui-nav-itemed{% endifequal %}{% endif %}">
           <a class="" href="javascript:;">{{ server.name }}</a>
           <dl class="layui-nav-child">
 	          {% for db in server.db %}
-            <dd class="{% ifequal server.name server_name %}{% ifequal db.name db_num %} layui-bg-green{% endifequal %}{% endifequal %}"><a href="/{{ server.name }}/{{ db.name }}">{{ db.name }} (keys={{ db.count }})</a></dd>
+            <dd class="{% if redis_name and db_num %}{% ifequal server.name redis_name %}{% ifequal db.name db_num %} layui-bg-green{% endifequal %}{% endifequal %}{% endif %}">
+                <a href="/{{ server.name }}/{{ db.name }}">{{ db.name }} (keys={{ db.count }})</a>
+            </dd>
 	          {% endfor %}
           </dl>
         </li>
