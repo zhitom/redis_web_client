@@ -27,7 +27,8 @@
         </dl>
       </li>
       {% if user.is_superuser is True %}
-      <li class="layui-nav-item {% if manage %}layui-this{% endif %}"><a href="/user/manage/">用户管理</a></li>
+      <li class="layui-nav-item {% if top_menu == 'user' %}layui-this{% endif %}"><a href="/user/manage/">用户管理</a></li>
+      <li class="layui-nav-item {% if top_menu == 'conf' %}layui-this{% endif %}"><a href="/redis/list/">redis配置</a></li>
       {% endif %}
     </ul>
     <ul class="layui-nav layui-layout-right">

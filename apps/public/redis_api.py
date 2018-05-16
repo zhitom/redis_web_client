@@ -2,8 +2,8 @@
 import redis
 import socket
 import sys
-import logging
 
+from conf import logs
 from conf.conf import base, socket_timeout,  scan_batch
 from redis.exceptions import (
     RedisError,
@@ -19,11 +19,11 @@ from redis.exceptions import (
 )
 from redis._compat import nativestr
 from users.models import RedisConf
+from monitor.forms import RedisForm
 
 client = None
 server_ip = None
 db_index = None
-logs = logging.getLogger('django')
 
 
 def get_redis_conf(name=None, user=None):
@@ -51,12 +51,10 @@ def get_client(*args, **kwargs):
             if kwargs['host'] == server_ip and kwargs['db'] == db_index:
                 pass
             else:
-                logs.info('switch conn...')
                 connect(*args, **kwargs)
                 server_ip = kwargs['host']
                 db_index = kwargs['db']
         else:
-            logs.info('init conn...')
             connect(*args, **kwargs)
             server_ip = kwargs['host']
             db_index = kwargs['db']
@@ -123,6 +121,8 @@ def check_connect(host, port, password=None, socket_timeout=socket_timeout):
 def check_redis_connect(name):
     redis_conf = get_redis_conf(name)
     try:
+        logs.debug("host:{0},port:{1},password:{2},timeout:{3}".format(
+            redis_conf.host, redis_conf.port, redis_conf.password, socket_timeout))
         conn = Connection(host=redis_conf.host, port=redis_conf.port,
                           password=redis_conf.password, socket_timeout=socket_timeout)
         conn.connect()
@@ -192,3 +192,25 @@ class Connection(redis.Connection):
             self.send_command('SELECT', self.db)
             if nativestr(self.read_response()) != 'OK':
                 raise ConnectionError('Invalid Database')
+
+
+def redis_conf_save(request):
+    redis_id = request.POST.get("id", None)
+    if redis_id is not None:
+        try:
+            redis_obj = RedisConf.objects.get(id=redis_id)
+            redis_form = RedisForm(request.POST, instance=redis_obj)
+            if redis_form.is_valid():
+                redis_form.save()
+                return True
+            return False
+        except Exception as e:
+            logs.error(e)
+            return False
+    else:
+        redis_form = RedisForm(request.POST)
+        if redis_form.is_valid():
+            redis_form.save()
+            return True
+        logs.error(redis_form.errors)
+        return False

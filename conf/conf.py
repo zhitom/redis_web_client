@@ -12,7 +12,7 @@ base = {
     'seperator': ':',
     'maxkeylen': 100
 }
-socket_timeout = 5
+socket_timeout = 2
 scan_batch = 10000  # scan 限制获取数据量
 show_key_self_count = False
 

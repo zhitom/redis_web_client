@@ -26,6 +26,7 @@ layui.use('table', function(){
       ,{field:'id', title: 'id', width:80, sort: true}
       ,{field:'username', title: '用户名', width:120, sort: true}
       ,{field:'email', title: '邮箱', width:180, sort: true}
+      ,{field:'is_superuser', title: '超级管理员', width:120, sort: true, templet: '#superuserTpl'}
       ,{field:'last_login', title: '上一次登陆时间', width:200, sort: true}
       ,{fixed:'right', width:180, align:'center', toolbar: '#barDemo'}
     ]]
@@ -92,7 +93,16 @@ layui.use('table', function(){
 });
 
 </script>
-	<script type="text/html" id="barDemo">
+    <script type="text/html" id="superuserTpl">
+    {% verbatim %}
+        {{# if(d.is_superuser === true){ }}
+        <span style="color: #f10e57;">{{ d.is_superuser }}</span>
+        {{# } else {  }}
+        <span style="color: #0e59f1;">{{ d.is_superuser }}</span>
+        {{# } }}
+    {% endverbatim %}
+    </script>
+<script type="text/html" id="barDemo">
 {#  <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="detail">查看</a>#}
   <a class="layui-btn layui-btn-mini" lay-event="edit">编辑用户</a>
   <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除用户</a>

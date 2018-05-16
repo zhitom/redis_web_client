@@ -276,18 +276,3 @@ class UserRegisterView(View):
             data["msg"] = "error"
         return JsonResponse(data=data, safe=False)
 
-
-class TestView(View):
-    def get(self, request):
-        # redis_conf_obj = RedisConf.objects.get(
-        #     name='redis2',
-        # )
-        #
-        # user_obj = DctUser.objects.get(username='carey')
-        # pre_obj = Auth.objects.create(
-        #     redis=redis_conf_obj.id,
-        #     pre_auth=3,
-        # )
-        # user_obj.auths.add(pre_obj)
-        # user_obj.save()
-        return JsonResponse(data=True, safe=False)

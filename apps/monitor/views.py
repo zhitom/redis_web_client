@@ -5,17 +5,17 @@ from django.views.generic.base import View
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from users.models import RedisConf
-import logging
+from conf import logs
 import time
+from dss.Serializer import serializer
 
 from conf.conf import scan_batch
 from public.menu import Menu
-from public.redis_api import check_redis_connect
-from public.redis_api import get_cl, get_redis_conf
+from public.redis_api import get_cl, get_redis_conf, redis_conf_save, check_redis_connect
 from utils.utils import LoginRequiredMixin
+from forms import RedisForm
 # from public.user_premission import object_user_premission
 # Create your views here.
-logs = logging.getLogger('django')
 
 
 class GetRedisInfo(LoginRequiredMixin, View):
@@ -29,7 +29,7 @@ class GetRedisInfo(LoginRequiredMixin, View):
         servers = get_redis_conf(name=None, user=request.user)
         data = []
         for ser in servers:
-            redis_obj = RedisConf.objects.get(index=ser.redis)
+            redis_obj = RedisConf.objects.get(id=ser.redis)
             status = check_redis_connect(name=redis_obj.name)
             if status is True:
                 client, cur_server_index, cur_db_index = get_cl(redis_name=redis_obj.name)
@@ -70,7 +70,7 @@ class CheckRedisContent(LoginRequiredMixin, View):
         servers = get_redis_conf(name=None, user=request.user)
         list = []
         for ser in servers:
-            redis_obj = RedisConf.objects.get(index=ser.redis)
+            redis_obj = RedisConf.objects.get(id=ser.redis)
             status = check_redis_connect(name=redis_obj.name)
             if status is not True:
                 info_dict = {'name': status["redis"].name, 'host': status["redis"].host, 'port': status["redis"].port,
@@ -188,7 +188,7 @@ class ClientListView(LoginRequiredMixin, View):
     def get(self, request):
         client_id = request.GET.get('client_id', None)
         if client_id is not None:
-            redis_obj = RedisConf.objects.get(index=client_id)
+            redis_obj = RedisConf.objects.get(id=client_id)
             status = check_redis_connect(name=redis_obj.name)
             if status is True:
                 client, cur_server_index, cur_db_index = get_cl(redis_name=redis_obj.name)
@@ -352,7 +352,7 @@ class BgSaveView(LoginRequiredMixin, View):
     保存数据 bgsave
     """
     def get(self, request, redis_id):
-        redis_obj = RedisConf.objects.get(index=redis_id)
+        redis_obj = RedisConf.objects.get(id=redis_id)
         cl, cur_server_index, cur_db_index = get_cl(redis_name=redis_obj.name, db_id=0)
         cl.bgsave()
 
@@ -414,4 +414,40 @@ class ClearDbView(LoginRequiredMixin, View):
             logs.error(e)
             data["code"] = 1
             data["msg"] = "failed"
+        return JsonResponse(data=data, safe=False)
+
+
+class RedisListView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.is_ajax():
+            data = {"code": 0, "msg": "", "data": ""}
+            redis_objs = RedisConf.objects.all()
+            data["data"] = serializer(redis_objs)
+            return JsonResponse(data=data)
+        menu = Menu(user=request.user)
+        return render(request, 'redis_list.html', {
+            'menu': menu,
+        })
+
+
+class RedisEditView(LoginRequiredMixin, View):
+    def post(self, request):
+        data = {"code": 0, "data": "", "msg": "成功"}
+        status = redis_conf_save(request)
+        if not status:
+            data["code"] = 1
+            data["msg"] = "失败"
+        return JsonResponse(data=data, safe=False)
+
+
+class RedisAddView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'redis_add.html', {})
+
+    def post(self, request):
+        data = {"code": 0, "data": "", "msg": "成功"}
+        status = redis_conf_save(request)
+        if not status:
+            data["code"] = 1
+            data["msg"] = "失败"
         return JsonResponse(data=data, safe=False)

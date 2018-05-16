@@ -7,7 +7,6 @@ from django.db import models
 
 
 class RedisConf(models.Model):
-    index = models.IntegerField(verbose_name=u"索引")
     name = models.CharField(max_length=10, verbose_name=u"名称")
     host = models.CharField(max_length=15, verbose_name=u"IP地址")
     port = models.IntegerField(default=6379, verbose_name=u"端口")

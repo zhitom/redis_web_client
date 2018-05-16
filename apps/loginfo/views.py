@@ -106,7 +106,7 @@ class UserManageView(LoginRequiredMixin, View):
 
         return render(request, 'user_manage.html', {
             'menu': menu,
-            'manage': 'manage',
+            'top_menu': 'user',
         })
 
     def post(self, request):
