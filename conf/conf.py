@@ -20,6 +20,7 @@ mail_host = 'smtp.exmail.qq.com'
 mail_user = 'test@test.com'
 mail_pass = ''
 mail_receivers = ["test@test.com", "test2@test.com"]
+admin_mail = ["test@test.com"]  # 管理员邮箱
 
 database = {
     "name": "redis_admin",

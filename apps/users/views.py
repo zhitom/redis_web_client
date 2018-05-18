@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.http.response import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 from .models import DctUser
 from .forms import LoginForms
 
@@ -15,7 +16,7 @@ from utils.utils import LoginRequiredMixin
 from public.menu import Menu
 from users.models import Auth, RedisConf
 from public.sendmail import send_email
-from conf.conf import mail_receivers
+from conf.conf import admin_mail
 from conf import logs
 
 # Create your views here.
@@ -261,11 +262,15 @@ class UserRegisterView(View):
         )
         if username is not None and password1 == password2 and email is not None:
             try:
-                user = DctUser.objects.create_user(username=username, email=email, password=password1)
-                send_email("用户注册", u"用户:{0}，邮箱:{1} \n\t注册redis管理平台请分配权限".format(username, email),
-                           receivers=mail_receivers)
+                DctUser.objects.get(username__iexact=username)
+                data["code"] = 1
+                data["msg"] = "用户名已注册"
+            except ObjectDoesNotExist:
+                DctUser.objects.create_user(username=username, email=email, password=password1)
+                send_email("[redis管理平台]用户注册", u"用户:{0}，邮箱:{1} \n\t注册redis管理平台请分配权限".format(username, email),
+                           receivers=admin_mail)
                 data["code"] = 0
-                data["msg"] = "注册成功,联系管理员分配权限中。"
+                data["msg"] = "注册成功"
             except Exception as e:
                 data["code"] = 1
                 data["msg"] = '{0}'.format(e)
