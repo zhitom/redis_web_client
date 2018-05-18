@@ -19,6 +19,10 @@ def send_email(subject, text=None, files=None, receivers=None, is_html=False):
     text=内容
     mail=[mail1@mail.com,mail2@mail.com]
     """
+
+    logs.debug("mail info: [user:{0},password:{1},host:{2},receivers:{3}]".format(
+        mail_user, mail_pass, mail_host, receivers))
+
     message = MIMEMultipart()
     if is_html:
         message.attach(MIMEText(text, 'html', 'utf-8'))
