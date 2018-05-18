@@ -262,9 +262,9 @@ class UserRegisterView(View):
         )
         if username is not None and password1 == password2 and email is not None:
             try:
-                DctUser.objects.get(username__iexact=username)
+                DctUser.objects.get(Q(username__iexact=username) | Q(email__iexact=email))
                 data["code"] = 1
-                data["msg"] = "用户名已注册"
+                data["msg"] = "用户已被注册"
             except ObjectDoesNotExist:
                 DctUser.objects.create_user(username=username, email=email, password=password1)
                 send_email("[redis管理平台]用户注册", u"用户:{0}，邮箱:{1} \n\t注册redis管理平台请分配权限".format(username, email),
