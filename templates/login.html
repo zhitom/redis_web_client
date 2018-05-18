@@ -35,7 +35,9 @@
       <script src="{% static 'js/login/supersized-init.js' %}"></script>
       <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
       <script type="text/javascript">
-        $("#from").on("submit", function (ev) {
+      layui.use('layer', function () {
+          var layer = layui.layer;
+          $("#from").on("submit", function (ev) {
 	        $.ajax({
 		        type: "POST",
 		        dataType: "json",
@@ -43,7 +45,6 @@
 		        data: $('#from').serialize(),
 		        success: function (result) {
 				        if (result.code == 0) {
-				            alert(result.msg);
 				            for (var item in result.data){
 				                layui.data('premission', {
 				                    key: item,
@@ -52,8 +53,7 @@
 				            }
 				            window.location.href='/?pre=true'
 				        } else {
-				            alert(result.msg);
-				            window.location.href='/login/'
+                            layer.msg(result.msg);
 				        }
             },
 		        error: function () {
@@ -63,6 +63,8 @@
 	        });
 	        ev.preventDefault()
         })
+
+          })
       </script>
     <script>
 		//JavaScript代码区域

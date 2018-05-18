@@ -39,41 +39,44 @@
       <script src="{% static 'js/login/supersized-init.js' %}"></script>
       <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
       <script type="text/javascript">
-        $("#from").on("submit", function (ev) {
-            var username = $(this).find('.username').val()
-                ,email = $(this).find('.email').val()
-                ,password1 = $(this).find('.password1').val()
-                ,password2 = $(this).find('.password2').val();
-            console.log(password1);
-            if (password1 === '') {
-                alert("密码不能为空")
-            } else if (username !== '' && email !== '' && password1 === password2) {
-                $.ajax({
-                    type: "POST",
-                    dataType: "json",
-                    url: "/register/",
-                    data: $('#from').serialize(),
-                    success: function (result) {
-                        if (result.code == 0) {
-                            alert(result.msg);
-                            window.location.href='/login/'
-                        } else {
-                            alert(result.msg);
-                        }
-                    },
-                    error: function () {
-                        alert("请求错误，请联系管理员！");
-                    }
-                });
-            } else if (username === '') {
-                alert("用户名不能为空")
-            } else if (email === '') {
-                alert("邮箱不能为空")
-            } else if (password1 !== password2) {
-                alert("两次密码不一致")
-            }
-	        ev.preventDefault()
-        })
+      layui.use('layer', function () {
+          var layer = layui.layer;
+          $("#from").on("submit", function (ev) {
+              var username = $(this).find('.username').val()
+                  , email = $(this).find('.email').val()
+                  , password1 = $(this).find('.password1').val()
+                  , password2 = $(this).find('.password2').val();
+              console.log(password1);
+              if (password1 === '') {
+                  layer.msg("密码不能为空")
+              } else if (username !== '' && email !== '' && password1 === password2) {
+                  $.ajax({
+                      type: "POST",
+                      dataType: "json",
+                      url: "/register/",
+                      data: $('#from').serialize(),
+                      success: function (result) {
+                          if (result.code == 0) {
+                              layer.msg(result.msg);
+                              window.location.href = '/login/'
+                          } else {
+                              layer.msg(result.msg);
+                          }
+                      },
+                      error: function () {
+                          layer.msg("请求错误，请联系管理员！");
+                      }
+                  });
+              } else if (username === '') {
+                  layer.msg("用户名不能为空")
+              } else if (email === '') {
+                  layer.msg("邮箱不能为空")
+              } else if (password1 !== password2) {
+                  layer.msg("两次密码不一致")
+              }
+              ev.preventDefault()
+          })
+      })
       </script>
     <script>
 		//JavaScript代码区域
