@@ -451,3 +451,16 @@ class RedisAddView(LoginRequiredMixin, View):
             data["code"] = 1
             data["msg"] = "失败"
         return JsonResponse(data=data, safe=False)
+
+
+class RedisDelView(LoginRequiredMixin, View):
+    def post(self, request):
+        redis_id = request.POST.get('id', None)
+        data = {'code': 0, 'data': '', 'msg': '成功'}
+        try:
+            RedisConf.objects.get(id=redis_id).delete()
+        except Exception as e:
+            logs.error(e)
+            data['code'] = 1
+            data['msg'] = '失败，请查看日志'
+        return JsonResponse(data=data)

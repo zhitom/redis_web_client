@@ -84,7 +84,7 @@ layui.use('form', function(){
         data: data.field,
         success: function (result) {
           layer.closeAll('loading');
-          layer.alert('修改 ID: ' + data.id + ' 字段: ' + field + ' 修改为:' + value + ' 消息: ' + result.msg)
+          layer.alert(' 消息: ' + result.msg)
         },
         error: function () {
           layer.closeAll('loading');

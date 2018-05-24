@@ -33,6 +33,7 @@ from monitor.views import (GetKeyView,
                            RedisListView,
                            RedisEditView,
                            RedisAddView,
+                           RedisDelView,
                            )
 
 urlpatterns = [
@@ -63,4 +64,5 @@ urlpatterns = [
     url(r'^redis/list/$', RedisListView.as_view(), name="redis_list"),
     url(r'^redis/list/edit/$', RedisEditView.as_view(), name="redis_edit"),
     url(r'^redis/list/add/$', RedisAddView.as_view(), name="redis_add"),
+    url(r'^redis/list/del/$', RedisDelView.as_view(), name="redis_del"),
 ]
