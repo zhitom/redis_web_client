@@ -15,18 +15,20 @@
 <table class="layui-hide" id="LAY_table_user" lay-filter="user"></table>
 <script>
 layui.use('table', function(){
-  var table = layui.table;
+  var table = layui.table
+      ,form = layui.form;
 
   //方法级渲染
   table.render({
     elem: '#LAY_table_user'
     ,url: '{% url 'user_manage' %}?type=json'
     ,cols: [[
-      {field:'id', title: 'id', width:80, sort: true}
-      ,{field:'username', title: '用户名', width:200, sort: true}
-      ,{field:'email', title: '邮箱', width:200, sort: true}
-      ,{field:'is_superuser', title: '超级管理员', width:120, sort: true, templet: '#superuserTpl'}
-      ,{field:'last_login', title: '上一次登陆时间', width:200, sort: true}
+      {field:'id', title: 'id', align:'center', width:80, sort: true}
+      ,{field:'username', title: '用户名', align:'center', width:200, sort: true}
+      ,{field:'email', title: '邮箱', align:'center', width:200, sort: true}
+      ,{field:'is_superuser', title: '超级管理员', align:'center', width:120, sort: true, templet: '#superuserTpl'}
+      ,{field:'is_active', title: '是否激活', align:'center', width:120, sort: true, templet: '#activeTpl'}
+      ,{field:'last_login', title: '上一次登陆时间', align:'center', width:200, sort: true}
       ,{fixed:'right', width:180, align:'center', toolbar: '#barDemo'}
     ]]
     ,id: 'testReload'
@@ -53,7 +55,6 @@ layui.use('table', function(){
 
   table.on('tool(user)', function(obj){
     var data = obj.data;
-		{#    获取value   #}
     if(obj.event === 'detail'){
       console.log(datas);
       layer.open({
@@ -83,6 +84,37 @@ layui.use('table', function(){
     } else if(obj.event === 'edit'){
         window.location.href="{% url 'change_user' %}?id="+data.id;
     }
+
+  });
+
+  form.on('switch(superuser)', function(obj){
+    $.ajax({
+        url: '{% url 'edit_user' %}',
+        dataType: 'json',
+        type: 'post',
+        data: {'id': this.value, 'is_superuser': obj.elem.checked},
+        success:function (result) {
+            layer.msg(result.msg)
+        },
+        error:function () {
+            layer.msg('请求错误')
+        }
+    });
+  });
+
+  form.on('switch(active)', function(obj){
+      $.ajax({
+        url: '{% url 'edit_user' %}',
+        dataType: 'json',
+        type: 'post',
+        data: {'id': this.value, 'is_active': obj.elem.checked},
+        success:function (result) {
+            layer.msg(result.msg)
+        },
+        error:function () {
+            layer.msg('请求错误')
+        }
+    });
   });
 
   $('.demoTable .layui-btn').on('click', function(){
@@ -92,15 +124,27 @@ layui.use('table', function(){
 });
 
 </script>
-    <script type="text/html" id="superuserTpl">
-    {% verbatim %}
-        {{# if(d.is_superuser === true){ }}
-        <span style="color: #f10e57;">{{ d.is_superuser }}</span>
-        {{# } else {  }}
-        <span style="color: #0e59f1;">{{ d.is_superuser }}</span>
-        {{# } }}
-    {% endverbatim %}
-    </script>
+
+<script type="text/html" id="superuserTpl">
+{% verbatim %}
+    {{# if(d.is_superuser === true){ }}
+    <input type="checkbox" name="is_superuser" value="{{d.id}}" lay-skin="switch" lay-text="true|false" lay-filter="superuser" checked>
+    {{# } else {  }}
+    <input type="checkbox" name="is_superuser" value="{{d.id}}" lay-skin="switch" lay-text="true|false" lay-filter="superuser">
+    {{# } }}
+{% endverbatim %}
+</script>
+
+<script type="text/html" id="activeTpl">
+{% verbatim %}
+    {{# if(d.is_active === true){ }}
+    <input type="checkbox" name="is_active" value="{{d.id}}" lay-skin="switch" lay-text="true|false" lay-filter="active" checked>
+    {{# } else {  }}
+    <input type="checkbox" name="is_active" value="{{d.id}}" lay-skin="switch" lay-text="true|false" lay-filter="active">
+    {{# } }}
+{% endverbatim %}
+</script>
+
 <script type="text/html" id="barDemo">
 {#  <a class="layui-btn layui-btn-normal layui-btn-mini" lay-event="detail">查看</a>#}
   <a class="layui-btn layui-btn-xs" lay-event="edit">编辑用户</a>

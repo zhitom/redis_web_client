@@ -191,6 +191,43 @@ class ChangeUser(LoginRequiredMixin, View):
         })
 
 
+class EditUser(LoginRequiredMixin, View):
+    def post(self, request):
+        data = {'code': 0, 'data': '', 'msg': '成功'}
+        user_id = request.POST.get('id', None)
+        is_superuser = request.POST.get('is_superuser', None)
+        is_active = request.POST.get('is_active', None)
+        if user_id is None:
+            data['code'] = 1
+            data['msg'] = 'id is not None'
+            return JsonResponse(data=data)
+
+        try:
+            user_obj = DctUser.objects.get(id=user_id)
+        except Exception as e:
+            logs.error(e)
+            data['code'] = 1
+            data['msg'] = '内部错误,请联系管理员!'
+            return JsonResponse(data=data)
+
+        if is_superuser is None and is_active is None:
+            data['code'] = 1
+            data['msg'] = '参数错误'
+        elif is_superuser:
+            if is_superuser == 'true':
+                user_obj.is_superuser = True
+            elif is_superuser == 'false':
+                user_obj.is_superuser = False
+            user_obj.save()
+        elif is_active:
+            if is_active == 'true':
+                user_obj.is_active = True
+            elif is_active == 'false':
+                user_obj.is_active = False
+            user_obj.save()
+        return JsonResponse(data=data)
+
+
 class AddUser(LoginRequiredMixin, View):
     def get(self, request):
         menu = Menu(user=request.user)
