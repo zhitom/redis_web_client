@@ -208,9 +208,11 @@ def redis_conf_save(request):
             logs.error(e)
             return False
     else:
-        redis_form = RedisForm(request.POST)
-        if redis_form.is_valid():
-            redis_form.save()
-            return True
-        logs.error(redis_form.errors)
+        name = request.POST.get('name', None)
+        if RedisConf.objects.filter(name__iexact=name).count() == 0:
+            redis_form = RedisForm(request.POST)
+            if redis_form.is_valid():
+                redis_form.save()
+                return True
+            logs.error(redis_form.errors)
         return False
