@@ -25,7 +25,6 @@ class GetRedisInfo(LoginRequiredMixin, View):
 
     def get(self, request):
         # print request.META["HTTP_REFERER"]
-        menu = Menu(user=request.user)
         servers = get_redis_conf(name=None, user=request.user)
         data = []
         for ser in servers:
@@ -43,7 +42,6 @@ class GetRedisInfo(LoginRequiredMixin, View):
 
         return render(request, 'index.html', {
             'data': data,
-            'menu': menu,
             'console': 'console',
         })
 
@@ -54,9 +52,7 @@ class RedisErrorHtmlView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        menu = Menu(user=request.user)
         return render(request, 'redis_error.html', {
-            'menu': menu,
             'error': 'error',
         })
 
@@ -171,10 +167,8 @@ class GetIdView(LoginRequiredMixin, View):
     key列表
     """
     def get(self, request, redis_name, id):
-        menu = Menu(user=request.user)
         return render(request, 'keyvalue.html', {
             'db_id': id,
-            'menu': menu,
             'redis_name': redis_name,
             'db_num': 'db' + str(id),
         })
@@ -208,11 +202,9 @@ class ClientListView(LoginRequiredMixin, View):
 
 class ClientHtmlView(LoginRequiredMixin, View):
     def get(self, request, client_id):
-        menu = Menu(user=request.user)
 
         return render(request, 'client_list.html', {
             'client_id': client_id,
-            'menu': menu
         })
 
 
@@ -260,7 +252,6 @@ class EditValueTableView(LoginRequiredMixin, View):
     编辑value
     """
     def get(self, request, redis_name, edit_db_id):
-        menu = Menu(user=request.user)
         from public.redis_api import get_cl
         from public.data_view import get_value
         cl, redis_name, cur_db_index = get_cl(redis_name, int(edit_db_id))
@@ -277,7 +268,6 @@ class EditValueTableView(LoginRequiredMixin, View):
                 value['value'] = value_list
 
         return render(request, 'edit.html', {
-            'menu': menu,
             'db_num': 'db' + str(edit_db_id),
             'redis_name': redis_name,
             'data': value,
@@ -291,7 +281,6 @@ class EditValueTableView(LoginRequiredMixin, View):
 
         cl, cur_server_index, cur_db_index = get_cl(redis_name, int(edit_db_id))
         ch_data = ChangeData(redis_name=redis_name, db_id=edit_db_id)
-        menu = Menu(user=request.user)
 
         key = request.GET.get('key', None)
         post_key_type = request.POST.get('Type', None)
@@ -340,7 +329,6 @@ class EditValueTableView(LoginRequiredMixin, View):
         db.save()
 
         return render(request, 'edit.html', {
-            'menu': menu,
             'db_num': 'db' + str(edit_db_id),
             'redis_name': redis_name,
             'data': data
@@ -364,12 +352,10 @@ class AddKeyView(LoginRequiredMixin, View):
     添加数据
     """
     def get(self, request, redis_name):
-        menu = Menu(user=request.user)
         this_tab = 'string'
         db_id = request.GET.get('db', None)
 
         return render(request, 'add_key.html', {
-            'menu': menu,
             'this_tab': this_tab,
             'db': db_id,
         })
@@ -424,9 +410,7 @@ class RedisListView(LoginRequiredMixin, View):
             redis_objs = RedisConf.objects.all()
             data["data"] = serializer(redis_objs)
             return JsonResponse(data=data)
-        menu = Menu(user=request.user)
         return render(request, 'redis_list.html', {
-            'menu': menu,
         })
 
 

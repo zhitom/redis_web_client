@@ -19,7 +19,6 @@ class OperationInfoEditView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        menu = Menu(user=request.user)
 
         if request.GET.get('type', None) == 'json':
             "分页"
@@ -42,7 +41,6 @@ class OperationInfoEditView(LoginRequiredMixin, View):
             return JsonResponse(data, safe=False)
 
         return render(request, 'operation_edit.html', {
-            'menu': menu,
             'record': 'record',
         })
 
@@ -53,7 +51,6 @@ class OperationInfoDelView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        menu = Menu(user=request.user)
 
         if request.GET.get('type', None) == 'json':
             limit = int(request.GET.get('limit', 30))
@@ -75,7 +72,6 @@ class OperationInfoDelView(LoginRequiredMixin, View):
             return JsonResponse(data, safe=False)
 
         return render(request, 'operation_del.html', {
-            'menu': menu,
             'record': 'record',
         })
 
@@ -102,10 +98,8 @@ class UserManageView(LoginRequiredMixin, View):
 
             return JsonResponse(data, safe=False)
 
-        menu = Menu(user=request.user)
 
         return render(request, 'user_manage.html', {
-            'menu': menu,
             'top_menu': 'user',
         })
 

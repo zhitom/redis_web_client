@@ -104,7 +104,6 @@ class ChangeUser(LoginRequiredMixin, View):
             })
 
     def post(self, request):
-        menu = Menu(user=request.user)
 
         id = request.POST.get('id', None)
         password1 = request.POST.get('password1', None)
@@ -190,7 +189,6 @@ class ChangeUser(LoginRequiredMixin, View):
             error = e
 
         return render(request, 'change_user.html', {
-            'menu': menu,
             'user_info': user,
             'error': error
         })
@@ -235,16 +233,13 @@ class EditUser(LoginRequiredMixin, View):
 
 class AddUser(LoginRequiredMixin, View):
     def get(self, request):
-        menu = Menu(user=request.user)
         redis = RedisConf.objects.all()
 
         return render(request, 'add_user.html', {
-            'menu': menu,
             'rediss': redis,
         })
 
     def post(self, request):
-        menu = Menu(user=request.user)
 
         username = request.POST.get('username', None)
         password1 = request.POST.get('password1', None)
@@ -283,7 +278,6 @@ class AddUser(LoginRequiredMixin, View):
                 return HttpResponseRedirect(reverse("user_manage"))
             except Exception as e:
                 return render(request, 'add_user.html', {
-                    'menu': menu,
                     'user_error': e,
                 })
 
