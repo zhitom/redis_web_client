@@ -79,10 +79,17 @@ layui.use('element', function(){
   element.on('nav(test)', function (elem) {
       layui.each(data.list, function (index, item) {
           if(item.name === elem.text()){
-            layui.data('menu', {
-                key: 'one',
-                value: elem.text()
-            })
+            if(elem.text() === data.one){
+                layui.data('menu', {
+                    key: 'one',
+                    value: ''
+                })
+            } else {
+                layui.data('menu', {
+                    key: 'one',
+                    value: elem.text()
+                })
+            }
           } else if(item.name !== elem.text()){
               layui.data('menu', {
                   key: 'two',
