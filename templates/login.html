@@ -48,9 +48,19 @@
 				            for (var item in result.data){
 				                layui.data('premission', {
 				                    key: item,
-						                value: result.data[item]
+                                    value: result.data[item]
 				                })
 				            }
+				            for (var menu in result.menu){
+				                layui.data('menu', {
+				                    key: 'list',
+                                    value: result.menu
+                                });
+                            }
+                            layui.data('menu', {
+                                key: 'left_menu',
+                                value: result.left_menu
+                            });
 				            window.location.href='/?pre=true'
 				        } else {
                             layer.msg(result.msg);
@@ -75,7 +85,8 @@
 		  $.ajaxSetup({
 				  headers: {'X-CSRFToken': csrftoken}
 		  });
-			layui.data('premission', null)
+          layui.data('premission', null);
+          layui.data('menu', null)
 		});
     </script>
   </body>

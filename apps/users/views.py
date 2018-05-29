@@ -68,6 +68,11 @@ class LoginViews(View):
                         redis_name = RedisConf.objects.get(id=ser.redis)
                         user_premission[redis_name.name] = ser.pre_auth
                     data["data"] = user_premission
+                    data["menu"] = Menu(user=user)
+                    left_menu = []
+                    for i in data['menu']:
+                        left_menu.append(i['name'])
+                    data['left_menu'] = left_menu
                     return JsonResponse(data)
                 else:
                     data["code"] = 1
