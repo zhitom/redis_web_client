@@ -32,6 +32,12 @@ database = {
 }
 ```
 
+### 生成数据库表文件
+
+```
+python manage.py migrate
+```
+
   
 ### nginx
 安装nginx, 使用我的另一个开源安装脚本安装nginx
