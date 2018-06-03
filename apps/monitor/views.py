@@ -74,6 +74,7 @@ class CheckRedisContent(LoginRequiredMixin, View):
         if status is not True:
             return {'name': status["redis"].name, 'host': status["redis"].host, 'port': status["redis"].port,
                          'error': status["message"].message}
+        return True
 
     def get(self, request):
         servers = get_redis_conf(name=None, user=request.user)
@@ -83,9 +84,13 @@ class CheckRedisContent(LoginRequiredMixin, View):
             if redis_obj.type == 1:
                 redis_cluster_obj = RedisConf.objects.filter(name__iexact=redis_obj.name)
                 for redis_cluster in redis_cluster_obj:
-                    data_list.append(self.check_redis_status(redis_cluster))
+                    redis_status = self.check_redis_status(redis_cluster)
+                    if redis_status is not True:
+                        data_list.append(redis_status)
             else:
-                data_list.append(self.check_redis_status(redis_obj))
+                redis_status = self.check_redis_status(redis_obj)
+                if redis_status is not True:
+                    data_list.append(redis_status)
 
         if len(data_list) != 0:
             data = {'code': 0, 'msg': '', 'data': data_list}
