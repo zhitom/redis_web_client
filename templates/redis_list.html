@@ -7,7 +7,7 @@
 {#  </div>#}
 {#  <button class="layui-btn" data-type="reload">搜索</button>#}
   <div class="layui-inline">
-	  <button class="layui-btn" data-type="add">新增</button>
+	  <button class="layui-btn" data-type="addRedis">新增redis</button>
   </div>
 </div>
 
@@ -29,6 +29,7 @@ layui.use('table', function(){
       ,{field:'host', title: '主机', width:150, sort: true, edit: 'text'}
       ,{field:'port', title: '端口', width:80, sort: true, edit: 'text'}
       ,{field:'database', title: 'DB数', width:80, sort: true, edit: 'text'}
+      ,{field:'type', title: '类型', width:80, sort: true}
       ,{fixed: 'right', width:178, align:'center', toolbar: '#barDemo'}
     ]]
     ,id: 'testReload'
@@ -102,7 +103,7 @@ layui.use('table', function(){
   });
 
   var $ = layui.$, active = {
-    add: function(){ //新增
+    addRedis: function(){ // 新增redis
       var checkStatus = table.checkStatus('idTest')
       ,data = checkStatus.data;
       //iframe层

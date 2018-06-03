@@ -10,11 +10,8 @@ import time
 from dss.Serializer import serializer
 
 from conf.conf import scan_batch
-from public.menu import Menu
-from public.redis_api import get_cl, get_redis_conf, redis_conf_save, check_redis_connect
+from public.redis_api import get_cl, get_redis_conf, redis_conf_save, check_redis_connect, get_redis_info
 from utils.utils import LoginRequiredMixin
-from forms import RedisForm
-# from public.user_premission import object_user_premission
 # Create your views here.
 
 
@@ -22,6 +19,18 @@ class GetRedisInfo(LoginRequiredMixin, View):
     """
     首页获取redis info信息
     """
+    def get_info(self, redis_obj):
+        status = check_redis_connect(name=redis_obj.name)
+        if status is True:
+            client = get_cl(redis_name=redis_obj.name)
+            info_dict = get_redis_info(cl=client, number=1)
+            time_local = time.localtime(info_dict['rdb_last_save_time'])
+            dt = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+            info_dict['rdb_last_save_time'] = dt
+            info_dict.update(host=redis_obj.host)
+            info_dict.update(redis_id=redis_obj.id)
+            return info_dict
+        return False
 
     def get(self, request):
         # print request.META["HTTP_REFERER"]
@@ -29,17 +38,16 @@ class GetRedisInfo(LoginRequiredMixin, View):
         data = []
         for ser in servers:
             redis_obj = RedisConf.objects.get(id=ser.redis)
-            status = check_redis_connect(name=redis_obj.name)
-            if status is True:
-                client, cur_server_index, cur_db_index = get_cl(redis_name=redis_obj.name)
-                info_dict = client.info()
-                time_local = time.localtime(info_dict['rdb_last_save_time'])
-                dt = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
-                info_dict['rdb_last_save_time'] = dt
-                info_dict.update(host=client.connection_pool.connection_kwargs['host'])
-                info_dict.update(redis_id=ser.redis)
-                data.append(info_dict)
-
+            if redis_obj.type == 1:
+                redis_cluster_obj = RedisConf.objects.filter(name__iexact=redis_obj.name)
+                for redis_cluster in redis_cluster_obj:
+                    info = self.get_info(redis_cluster)
+                    if not isinstance(info, bool):
+                        data.append(info)
+            else:
+                info = self.get_info(redis_obj)
+                if not isinstance(info, bool):
+                    data.append(info)
         return render(request, 'index.html', {
             'data': data,
             'console': 'console',
@@ -61,19 +69,26 @@ class CheckRedisContent(LoginRequiredMixin, View):
     """
     获取连接错误信息
     """
+    def check_redis_status(self, redis_obj):
+        status = check_redis_connect(name=redis_obj.name)
+        if status is not True:
+            return {'name': status["redis"].name, 'host': status["redis"].host, 'port': status["redis"].port,
+                         'error': status["message"].message}
 
     def get(self, request):
         servers = get_redis_conf(name=None, user=request.user)
-        list = []
+        data_list = []
         for ser in servers:
             redis_obj = RedisConf.objects.get(id=ser.redis)
-            status = check_redis_connect(name=redis_obj.name)
-            if status is not True:
-                info_dict = {'name': status["redis"].name, 'host': status["redis"].host, 'port': status["redis"].port,
-                             'error': status["message"].message}
-                list.append(info_dict)
-        if len(list) != 0:
-            data = {'code': 0, 'msg': '', 'data': list}
+            if redis_obj.type == 1:
+                redis_cluster_obj = RedisConf.objects.filter(name__iexact=redis_obj.name)
+                for redis_cluster in redis_cluster_obj:
+                    data_list.append(self.check_redis_status(redis_cluster))
+            else:
+                data_list.append(self.check_redis_status(redis_obj))
+
+        if len(data_list) != 0:
+            data = {'code': 0, 'msg': '', 'data': data_list}
         else:
             data = {'code': 1, 'msg': '无连接错误', 'data': ''}
 
@@ -97,7 +112,7 @@ class GetKeyView(LoginRequiredMixin, View):
         max_num = limit * page
         min_num = max_num - limit
 
-        cl, redis_name, cur_db_index = get_cl(redis_name, int(db_id))
+        cl = get_cl(redis_name, int(db_id))
         if search_name is not None:
             keys = get_all_keys_tree(client=cl, key=search_name, cursor=0, min_num=min_num, max_num=max_num)
         else:
@@ -106,6 +121,11 @@ class GetKeyView(LoginRequiredMixin, View):
             values.append({'key': key})
 
         db_key_num = cl.dbsize()
+        if isinstance(db_key_num, dict):
+            all_keys = 0
+            for k, v in db_key_num.items():
+                all_keys = all_keys + v
+            db_key_num = all_keys / 2
         batch_key_num = scan_batch
         if batch_key_num > db_key_num:
             key_num = db_key_num
@@ -124,7 +144,7 @@ class GetValueView(LoginRequiredMixin, View):
     def get(self, request, redis_name, value_db_id, key):
         from public.redis_api import get_cl
         from public.data_view import get_value
-        cl, cur_server_index, cur_db_index = get_cl(redis_name, int(value_db_id))
+        cl = get_cl(redis_name, int(value_db_id))
         value_dict = {'code': 0, 'msg': '', 'data': ''}
         if cl.exists(key):
             value = ''
@@ -134,9 +154,10 @@ class GetValueView(LoginRequiredMixin, View):
                     value = -1
             else:
                 try:
-                    value = get_value(key, cur_server_index, cur_db_index, cl)
+                    value = get_value(key, int(value_db_id), cl)
                 except Exception as e:
-                    logs.error(e)
+                    logs.error('get value is error: redis_name:{0}, key:{1}, db:{2}, cl:{3}, error_info:{4}'.format(
+                        redis_name, key, value_db_id, cl, e))
                     value_dict['code'] = 1
             value_dict['data'] = value
         else:
@@ -149,7 +170,7 @@ class GetValueView(LoginRequiredMixin, View):
         修改TTL
         """
         from public.redis_api import get_cl
-        cl, cur_server_index, cur_db_index = get_cl(redis_name, int(value_db_id))
+        cl = get_cl(redis_name, int(value_db_id))
         value_dict = {'code': 0, 'msg': '', 'data': ''}
         ttl = request.POST.get("ttl", None)
         if cl.exists(key) and ttl:
@@ -185,7 +206,7 @@ class ClientListView(LoginRequiredMixin, View):
             redis_obj = RedisConf.objects.get(id=client_id)
             status = check_redis_connect(name=redis_obj.name)
             if status is True:
-                client, cur_server_index, cur_db_index = get_cl(redis_name=redis_obj.name)
+                client = get_cl(redis_name=redis_obj.name)
                 client_list = client.client_list()
                 "分页"
                 limit = int(request.GET.get('limit', 30))
@@ -223,8 +244,8 @@ class DelKeyView(LoginRequiredMixin, View):
         db_id = request.POST.get('db_id', None)
         key = request.POST.get('key', None)
 
-        cl, redis_name, cur_db_index = get_cl(redis_name, int(db_id))
-        old_data = get_value(key, redis_name, cur_db_index, cl)
+        cl = get_cl(redis_name, int(db_id))
+        old_data = get_value(key, int(db_id), cl)
         db = OperationInfo(
             username=request.user.username,
             server=redis_name,
@@ -254,10 +275,10 @@ class EditValueTableView(LoginRequiredMixin, View):
     def get(self, request, redis_name, edit_db_id):
         from public.redis_api import get_cl
         from public.data_view import get_value
-        cl, redis_name, cur_db_index = get_cl(redis_name, int(edit_db_id))
+        cl = get_cl(redis_name, int(edit_db_id))
         key = request.GET.get('key', None)
         if cl.exists(key):
-            value = get_value(key, redis_name, cur_db_index, cl)
+            value = get_value(key, int(edit_db_id), cl)
             if cl.type(key) == 'list':
                 value_list = []
                 num = 0
@@ -279,12 +300,12 @@ class EditValueTableView(LoginRequiredMixin, View):
         from public.data_view import get_value
         from loginfo.models import OperationInfo
 
-        cl, cur_server_index, cur_db_index = get_cl(redis_name, int(edit_db_id))
+        cl = get_cl(redis_name, int(edit_db_id))
         ch_data = ChangeData(redis_name=redis_name, db_id=edit_db_id)
 
         key = request.GET.get('key', None)
         post_key_type = request.POST.get('Type', None)
-        old_data = get_value(key, cur_server_index, cur_db_index, cl)
+        old_data = get_value(key, int(edit_db_id), cl)
 
         if post_key_type == 'string':
             post_value = request.POST.get('value', None)
@@ -307,7 +328,7 @@ class EditValueTableView(LoginRequiredMixin, View):
             value = request.POST.get('Value', None)
             ch_data.edit_value(key=key, value=index, new=value, score=None)
 
-        data = get_value(key, cur_server_index, cur_db_index, cl)
+        data = get_value(key, int(edit_db_id), cl)
         if cl.type(key) == 'list':
             value_list = []
             num = 0
@@ -341,7 +362,7 @@ class BgSaveView(LoginRequiredMixin, View):
     """
     def get(self, request, redis_id):
         redis_obj = RedisConf.objects.get(id=redis_id)
-        cl, cur_server_index, cur_db_index = get_cl(redis_name=redis_obj.name, db_id=0)
+        cl = get_cl(redis_name=redis_obj.name, db_id=0)
         cl.bgsave()
 
         return HttpResponseRedirect(reverse("index"))
@@ -394,7 +415,7 @@ class ClearDbView(LoginRequiredMixin, View):
         redis_name = request.POST.get("redis_name", None)
         db_id = request.POST.get("db_id", None)
         try:
-            cl, cur_server_index, cur_db_index = get_cl(redis_name=redis_name, db_id=db_id)
+            cl = get_cl(redis_name=redis_name, db_id=db_id)
             cl.flushdb()
         except Exception as e:
             logs.error(e)

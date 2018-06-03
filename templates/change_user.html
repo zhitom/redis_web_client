@@ -62,6 +62,24 @@
     </div>
   </div>
   {% endfor %}
+    {% for cluster in clusters %}
+      <div class="layui-form-item">
+        <label class="layui-form-label">{{ cluster.name }}</label>
+        <div class="layui-input-block">
+          <select name="{{ cluster.name }}">
+          {% for a in auth %}
+              {% if a.redis == cluster.id %}
+              <option value="{{ a.pre_auth }}">{% if a.pre_auth == 1 %}查看{% elif a.pre_auth == 2 %}编辑{% elif a.pre_auth == 3 %}删除{% endif %}</option>
+              {% endif %}
+          {% endfor %}
+            <option value="">无权限</option>
+            <option value="1">查看</option>
+            <option value="2">编辑</option>
+            <option value="3">删除</option>
+          </select>
+        </div>
+      </div>
+      {% endfor %}
 	{% if error %}
 	<div class="layui-form-item">
 		<div>

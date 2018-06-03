@@ -17,23 +17,10 @@ from django.conf.urls import url
 from users.views import LoginViews, LogoutView
 from loginfo.views import OperationInfoEditView, OperationInfoDelView, UserManageView
 from users.views import ChangeUser, AddUser, UserRegisterView, EditUser
-from monitor.views import (GetKeyView,
-                           GetRedisInfo,
-                           CheckRedisContent,
-                           GetIdView,
-                           GetValueView,
-                           RedisErrorHtmlView,
-                           ClientHtmlView,
-                           ClientListView,
-                           DelKeyView,
-                           EditValueTableView,
-                           BgSaveView,
-                           AddKeyView,
-                           ClearDbView,
-                           RedisListView,
-                           RedisEditView,
-                           RedisAddView,
-                           RedisDelView,
+from monitor.views import (GetKeyView, GetRedisInfo, CheckRedisContent, GetIdView,
+                           GetValueView, RedisErrorHtmlView, ClientHtmlView, ClientListView,
+                           DelKeyView, EditValueTableView, BgSaveView, AddKeyView, ClearDbView,
+                           RedisListView, RedisEditView, RedisAddView, RedisDelView
                            )
 
 urlpatterns = [

@@ -18,12 +18,10 @@ def Menu(user):
     for ser in servers:
         redis_obj = RedisConf.objects.get(id=ser.redis)
         data_is = {'name': redis_obj.name, 'db': ''}
-        status = check_redis_connect(name=redis_obj.name)
-        if isinstance(status, bool) and status:
-            me = []
-            for i in range(redis_obj.database):
-                me.append('db{0}'.format(i))
-            data_is['db'] = me
-            data.append(data_is)
-            m_index += 1
+        me = []
+        for i in range(redis_obj.database):
+            me.append('db{0}'.format(i))
+        data_is['db'] = me
+        data.append(data_is)
+        m_index += 1
     return data

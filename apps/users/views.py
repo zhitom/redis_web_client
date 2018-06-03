@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import DctUser
 from .forms import LoginForms
 
-from public.redis_api import check_redis_connect, get_redis_conf
+from public.redis_api import get_redis_conf, get_all_cluster_redis
 from utils.utils import LoginRequiredMixin
 from public.menu import Menu
 from users.models import Auth, RedisConf
@@ -65,8 +65,12 @@ class LoginViews(View):
                     servers = get_redis_conf(name=None, user=request.user)
                     user_premission = dict()
                     for ser in servers:
-                        redis_name = RedisConf.objects.get(id=ser.redis)
-                        user_premission[redis_name.name] = ser.pre_auth
+                        try:
+                            redis_name = RedisConf.objects.get(id=ser.redis)
+                            user_premission[redis_name.name] = ser.pre_auth
+                        except Exception as e:
+                            logs.error(e)
+                            raise e
                     data["data"] = user_premission
                     data["menu"] = Menu(user=user)
                     left_menu = []
@@ -85,17 +89,17 @@ class LoginViews(View):
 
 class ChangeUser(LoginRequiredMixin, View):
     def get(self, request):
-        menu = Menu(user=request.user)
         id = request.GET.get('id', None)
         try:
             user = DctUser.objects.get(id=id)
             auth = get_redis_conf(name=None, user=user)
-            redis = RedisConf.objects.all()
+            redis = RedisConf.objects.filter(type=0)
+            cluster = get_all_cluster_redis()
             return render(request, 'change_user.html', {
-                'menu': menu,
                 'user_info': user,
                 'auth': auth,
                 'rediss': redis,
+                'clusters': cluster
             })
         except Exception as e:
             logs.error(u"修改用户信息: id:{0},msg:{1}".format(id, e))
@@ -111,10 +115,17 @@ class ChangeUser(LoginRequiredMixin, View):
         email = request.POST.get('email', None)
         is_superuser = request.POST.get('is_superuser', None)
 
-        rediss = RedisConf.objects.all()
+        rediss = list(RedisConf.objects.all())
+        name_list = []
+        redis_list = []
+        for i in rediss:
+            if i.name not in name_list:
+                name_list.append(i.name)
+                redis_list.append(i)
+        del name_list
         user = DctUser.objects.get(id=id)
 
-        for re in rediss:
+        for re in redis_list:
             re_id = request.POST.get(re.name, None)
             # 判断是否获取到值
             if re_id is None:

@@ -17,6 +17,10 @@ from redis.exceptions import (
     ExecAbortError,
     ReadOnlyError
 )
+from rediscluster import StrictRedisCluster
+from django.db.models import Q
+from django.core.exceptions import MultipleObjectsReturned
+from collections import Iterable
 from redis._compat import nativestr
 from users.models import RedisConf
 from monitor.forms import RedisForm
@@ -26,12 +30,41 @@ server_ip = None
 db_index = None
 
 
+def cluster_connect(conf, password=None):
+    logs.debug('redis cluster connect:{0},password:{1}'.format(conf, password))
+    return StrictRedisCluster(startup_nodes=conf, decode_responses=True, socket_timeout=socket_timeout)
+
+
+def get_all_cluster_redis():
+    clusters = RedisConf.objects.filter(type=1)
+    cluster_name_list = []
+    cluster_list = []
+    for cluster in clusters:
+        if cluster.name not in cluster_name_list:
+            cluster_name_list.append(cluster.name)
+            cluster_list.append(cluster)
+    return cluster_list
+
+
 def get_redis_conf(name=None, user=None):
     if name is None and user is not None:
         return user.auths.all()
     else:
         try:
             return RedisConf.objects.get(name=name)
+        except MultipleObjectsReturned:
+            cluster_confs = RedisConf.objects.filter(name=name)
+            cluster_conf_list = list()
+            for cluster in cluster_confs:
+                cluster_conf_dict = dict()
+                cluster_conf_dict['id'] = cluster.id
+                cluster_conf_dict['host'] = cluster.host
+                cluster_conf_dict['port'] = cluster.port
+                cluster_conf_dict['password'] = cluster.password
+                cluster_conf_dict['name'] = cluster.name
+                cluster_conf_list.append(cluster_conf_dict)
+                del cluster_conf_dict
+            return cluster_conf_list
         except Exception as e:
             logs.error(e)
     return False
@@ -98,13 +131,20 @@ def get_all_keys_tree(client=None, key='*', cursor=0, min_num=None, max_num=None
     client = client or get_client()
     key = key or '*'
     if key == '*':
-        next_cursor, key_all = client.scan(cursor=cursor, match=key, count=scan_batch)
+        data = client.scan(cursor=cursor, match=key, count=scan_batch)
     else:
         key = '*%s*' % key
-        next_cursor, key_all = 0, client.keys(key)
-    key_all = key_all[min_num:max_num]
-    key_all.sort()
-    return key_all
+        data = 0, client.keys(key)
+    if isinstance(data, tuple):
+        data = data[1]
+    elif isinstance(data, dict):
+        data_list = list()
+        for k, v in data.items():
+            data_list.extend(v[1])
+        data = data_list
+    data = data[min_num:max_num]
+    data.sort()
+    return data
 
 
 def check_connect(host, port, password=None, socket_timeout=socket_timeout):
@@ -120,31 +160,40 @@ def check_connect(host, port, password=None, socket_timeout=socket_timeout):
 
 def check_redis_connect(name):
     redis_conf = get_redis_conf(name)
-    try:
-        logs.debug("host:{0},port:{1},password:{2},timeout:{3}".format(
-            redis_conf.host, redis_conf.port, redis_conf.password, socket_timeout))
-        conn = Connection(host=redis_conf.host, port=redis_conf.port,
-                          password=redis_conf.password, socket_timeout=socket_timeout)
-        conn.connect()
+    if isinstance(redis_conf, list):
+        conn = cluster_connect(conf=redis_conf)
+        status = conn.ping()
         return True
-    except Exception as e:
-        logs.error(e)
-        error = dict(
-            redis=redis_conf,
-            message=e,
-        )
-        return error
+    else:
+        try:
+            logs.debug("host:{0},port:{1},password:{2},timeout:{3}".format(
+                redis_conf.host, redis_conf.port, redis_conf.password, socket_timeout))
+            conn = Connection(host=redis_conf.host, port=redis_conf.port,
+                              password=redis_conf.password, socket_timeout=socket_timeout)
+            conn.connect()
+            return True
+        except Exception as e:
+            logs.error(e)
+            error = dict(
+                redis=redis_conf,
+                message=e,
+            )
+            return error
 
 
 def get_cl(redis_name, db_id=0):
     cur_db_index = int(db_id)
     server = get_redis_conf(name=redis_name)
     if server is not False:
-        if server.password is None:
-            cl = get_client(host=server.host, port=server.port, db=cur_db_index, password=None)
+        if isinstance(server, list):
+            conn = cluster_connect(conf=server)
+            return conn
         else:
-            cl = get_client(host=server.host, port=server.port, db=cur_db_index, password=server.password)
-        return cl, redis_name, cur_db_index
+            if server.password is None:
+                cl = get_client(host=server.host, port=server.port, db=cur_db_index, password=None)
+            else:
+                cl = get_client(host=server.host, port=server.port, db=cur_db_index, password=server.password)
+            return cl
     else:
         return False
 
@@ -196,6 +245,8 @@ class Connection(redis.Connection):
 
 def redis_conf_save(request):
     redis_id = request.POST.get("id", None)
+
+    # 编辑
     if redis_id is not None:
         try:
             redis_obj = RedisConf.objects.get(id=redis_id)
@@ -207,12 +258,47 @@ def redis_conf_save(request):
         except Exception as e:
             logs.error(e)
             return False
+
+    # 添加
     else:
+        redis_form = RedisForm(request.POST)
+        if not redis_form.is_valid():
+            logs.error(redis_form.errors)
+            return False
+
         name = request.POST.get('name', None)
-        if RedisConf.objects.filter(name__iexact=name).count() == 0:
-            redis_form = RedisForm(request.POST)
-            if redis_form.is_valid():
+        redis_type = request.POST.get('type', None)
+        # 单机redis添加
+        if redis_type is None or int(redis_type) == 0:
+            if RedisConf.objects.filter(name__iexact=name).count() == 0:
                 redis_form.save()
                 return True
-            logs.error(redis_form.errors)
+            else:
+                logs.error('单机redis添加错误: 名称重复, data:{0}'.format(request.POST))
+                return False
+
+        # cluster添加
+        elif int(redis_type) == 1:
+            if RedisConf.objects.filter(Q(type=0) & Q(name__iexact=name)).count() == 0:
+                redis_form.save()
+                return True
+            else:
+                logs.error('cluster redis添加错误: 名称与单机重复, data:{0}'.format(request.POST))
+                return False
         return False
+
+
+def get_redis_info(cl, number=0):
+    """
+    获取redis info信息
+    :param cl: connect
+    :param number: cluster类型需传递,number=0为获取群集所有redis info, number=1为返回第一个redis info
+    :return: info
+    """
+    data = cl.info()
+    if 'redis_version' not in data:
+        if number == 1:
+            for k, v in data.items():
+                data = v
+                break
+    return data

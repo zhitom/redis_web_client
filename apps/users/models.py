@@ -7,11 +7,16 @@ from django.db import models
 
 
 class RedisConf(models.Model):
+    TYPE_CHOICES = (
+        (0, u'单机'),
+        (1, u'cluster')
+    )
     name = models.CharField(max_length=10, verbose_name=u"名称")
     host = models.CharField(max_length=15, verbose_name=u"IP地址")
     port = models.IntegerField(default=6379, verbose_name=u"端口")
     password = models.CharField(null=True, blank=True, max_length=30, verbose_name=u"密码")
     database = models.IntegerField(default=16, verbose_name=u"db数")
+    type = models.IntegerField(default=0, choices=TYPE_CHOICES, verbose_name=u"类型")
 
     class Meta:
         verbose_name = "redis配置"

@@ -8,7 +8,7 @@ class ChangeData(object):
     def __init__(self, redis_name=None, db_id=None):
         self.redis_name = redis_name
         self.db_id = db_id
-        self.cl, self.cur_server_index, self.cur_db_index = get_cl(redis_name=self.redis_name, db_id=self.db_id)
+        self.cl = get_cl(redis_name=self.redis_name, db_id=self.db_id)
 
     def delete_key(self, key, cursor=None):
         if cursor is not None:

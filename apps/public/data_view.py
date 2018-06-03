@@ -7,16 +7,22 @@ try:
     from html import escape  # python 3.x
 except ImportError:
     from cgi import escape  # python 2.x
+from public.redis_api import get_redis_info
+from conf import logs
 
 
-def get_value(fullkey, sid, db, client):
+def get_value(fullkey, db, client):
     cl = client
     m_type = cl.type(fullkey)
     m_ttl = cl.ttl(fullkey)
     m_ttl = m_ttl and m_ttl or ''
-    redis_version = cl.info()['redis_version']
+    redis_version = get_redis_info(cl=cl, number=1)['redis_version']
     if redis_version >= '2.2.3':
-        m_encoding = cl.object('encoding', fullkey)
+        try:
+            m_encoding = cl.object('encoding', fullkey)
+        except Exception as e:
+            logs.debug('cli error:{0}, {1}'.format(client, e))
+            m_encoding = ''
     else:
         m_encoding = ''
     m_len = 0
