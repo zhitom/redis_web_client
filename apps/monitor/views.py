@@ -72,8 +72,8 @@ class CheckRedisContent(LoginRequiredMixin, View):
     def check_redis_status(self, redis_obj):
         status = check_redis_connect(name=redis_obj.name)
         if status is not True:
-            return {'name': status["redis"].name, 'host': status["redis"].host, 'port': status["redis"].port,
-                         'error': status["message"].message}
+            data = {'name': status["redis"], 'error': status["message"]}
+            return data
         return True
 
     def get(self, request):

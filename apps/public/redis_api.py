@@ -35,6 +35,11 @@ def cluster_connect(conf, password=None):
     return StrictRedisCluster(startup_nodes=conf, decode_responses=True, socket_timeout=socket_timeout)
 
 
+def get_cluster_first_conf(name):
+    redis_obj = RedisConf.objects.filter(name=name)[1]
+    return redis_obj
+
+
 def get_all_cluster_redis():
     clusters = RedisConf.objects.filter(type=1)
     cluster_name_list = []
@@ -161,9 +166,17 @@ def check_connect(host, port, password=None, socket_timeout=socket_timeout):
 def check_redis_connect(name):
     redis_conf = get_redis_conf(name)
     if isinstance(redis_conf, list):
-        conn = cluster_connect(conf=redis_conf)
-        status = conn.ping()
-        return True
+        try:
+            conn = cluster_connect(conf=redis_conf)
+            conn.ping()
+            return True
+        except Exception as e:
+            logs.error(e)
+            error = dict(
+                redis=name,
+                message=e,
+            )
+            return error
     else:
         try:
             logs.debug("host:{0},port:{1},password:{2},timeout:{3}".format(
@@ -175,7 +188,7 @@ def check_redis_connect(name):
         except Exception as e:
             logs.error(e)
             error = dict(
-                redis=redis_conf,
+                redis=name,
                 message=e,
             )
             return error
