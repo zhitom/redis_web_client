@@ -83,6 +83,11 @@ service nginx start
 使用`python manage.py createsuperuser` 创建用户  
 **访问浏览器 http://ip/** 
 
+### 权限和菜单栏
+添加redis配置后，需要在用户管理中点击编辑用户**为相关用户授权相关redis权限**，被授权用户需要退出**重新登录**，即可看到相应菜单栏显示。
+
+
+
 ![](https://gitee.com/careyjike_173/redis_web_client/raw/master/static/img/1.png)
 
 
