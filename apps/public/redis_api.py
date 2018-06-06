@@ -139,7 +139,7 @@ def get_all_keys_tree(client=None, key='*', cursor=0, min_num=None, max_num=None
         data = client.scan(cursor=cursor, match=key, count=scan_batch)
     else:
         key = '*%s*' % key
-        data = 0, client.keys(key)
+        data = client.scan(cursor=cursor, match=key, count=scan_batch)
     if isinstance(data, tuple):
         data = data[1]
     elif isinstance(data, dict):
