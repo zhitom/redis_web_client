@@ -168,6 +168,7 @@ def check_redis_connect(name):
     if isinstance(redis_conf, list):
         try:
             conn = cluster_connect(conf=redis_conf)
+            logs.debug('check redis connect: {0}'.format(redis_conf))
             conn.ping()
             return True
         except Exception as e:

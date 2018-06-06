@@ -149,6 +149,7 @@ class GetValueView(LoginRequiredMixin, View):
     def get(self, request, redis_name, value_db_id, key):
         from public.redis_api import get_cl
         from public.data_view import get_value
+        logs.info('get value: redis_name={0}, db={1}, key={2}'.format(redis_name, value_db_id, key))
         cl = get_cl(redis_name, int(value_db_id))
         value_dict = {'code': 0, 'msg': '', 'data': ''}
         if cl.exists(key):
@@ -157,6 +158,8 @@ class GetValueView(LoginRequiredMixin, View):
                 value = cl.ttl(key)
                 if value is None:
                     value = -1
+                logs.info('get key ttl: redis_name={0}, db={1}, key={2}, ttl={3}'.format(
+                    redis_name, value_db_id, key, value))
             else:
                 try:
                     value = get_value(key, int(value_db_id), cl)
@@ -166,6 +169,7 @@ class GetValueView(LoginRequiredMixin, View):
                     value_dict['code'] = 1
             value_dict['data'] = value
         else:
+            logs.warning('key is not exists: redis_name={0}, db={1}, key={2}'.format(redis_name, value_db_id, key))
             value_dict['code'] = 1
 
         return JsonResponse(value_dict, safe=False)
@@ -181,6 +185,8 @@ class GetValueView(LoginRequiredMixin, View):
         if cl.exists(key) and ttl:
             try:
                 cl.expire(key, ttl)
+                logs.info('change key tll: redis_name={0}, db={1}, key={2}, ttl={3}'.format(
+                    redis_name, value_db_id, key, ttl))
                 value_dict['msg'] = "修改成功"
             except Exception as e:
                 logs.error(e)
