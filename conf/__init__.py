@@ -5,4 +5,4 @@ __date__ = '2017/12/25'
 
 import logging
 
-logs = logging.getLogger('django')
+logs = logging.getLogger('dct.custom')

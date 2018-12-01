@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'users',
     'monitor',
     'loginfo',
-    'gunicorn',
+    # 'gunicorn',
 ]
 
 AUTH_USER_MODEL = 'users.DctUser'
@@ -151,6 +151,14 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 5,
             'backupCount': 5,
         },
+        'request': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': os.path.join(BASE_DIR, 'log/request.log'),
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 5,
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -164,17 +172,17 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['request'],
             'propagate': True,
             'level': LOG_LEVEL,
         },
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['request'],
             'level': 'ERROR',
             'propagate': False,
         },
         'dct.custom': {
-            'handlers': ['console', 'mail_admins'],
+            'handlers': ['file'],
             'level': 'INFO',
             'filters': ['special']
         }
