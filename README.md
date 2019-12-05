@@ -1,6 +1,6 @@
 # 说明
 
-此项目来自: **[WIKI](https://gitee.com/careyjike_173/redis_web_client.git)](https://gitee.com/careyjike_173/redis_web_client.git)** ,做了如下修改:
+此项目来自: **[https://gitee.com/careyjike_173/redis_web_client.git](https://gitee.com/careyjike_173/redis_web_client.git)** ,做了如下修改:
 
 - 将redis配置中的host和name长度做了扩充
 - 部署到https环境中,增加CSRF_TRUSTED_ORIGINS的对外域名设置信息,redis_admin/settings.py:
