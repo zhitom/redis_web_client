@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='redisconf',
             name='name',
-            field=models.CharField(default=2, max_length=10, verbose_name='\u540d\u79f0'),
+            field=models.CharField(default=2, max_length=1024, verbose_name='\u540d\u79f0'),
             preserve_default=False,
         ),
         migrations.DeleteModel(

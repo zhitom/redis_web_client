@@ -2,6 +2,7 @@
 import redis
 import socket
 import sys
+import json
 
 from conf import logs
 from conf.conf import base, socket_timeout,  scan_batch
@@ -138,8 +139,17 @@ def get_all_keys_tree(client=None, key='*', cursor=0, min_num=None, max_num=None
     if key == '*':
         data = client.scan(cursor=cursor, match=key, count=scan_batch)
     else:
-        key = '*%s*' % key
-        data = client.scan(cursor=cursor, match=key, count=scan_batch)
+        if key[0] == '$' :
+            logs.info('execute: cmd={0}'.format(key[1:].split()))
+            res=client.execute_command(*key[1:].split());
+            #logs.info('execute response={0}'.format(res))
+            resinfo={'cmd':" ".join(key[1:].split()),'response':res.replace("\r\n","\n").strip("\n").split("\n")};#{'$response':res}
+            data_list = list()
+            data_list.append(json.dumps(resinfo));
+            return data_list[min_num:max_num];
+        else:
+            key = '*%s*' % key
+            data = client.scan(cursor=cursor, match=key, count=scan_batch)
     if isinstance(data, tuple):
         data = data[1]
     elif isinstance(data, dict):

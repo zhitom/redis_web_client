@@ -59,8 +59,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('index', models.IntegerField(verbose_name='\u7d22\u5f15')),
-                ('name', models.CharField(max_length=10, verbose_name='\u540d\u79f0')),
-                ('host', models.CharField(max_length=15, verbose_name='IP\u5730\u5740')),
+                ('name', models.CharField(max_length=1024, verbose_name='\u540d\u79f0')),
+                ('host', models.CharField(max_length=1024, verbose_name='IP\u5730\u5740')),
                 ('port', models.IntegerField(default=6379, verbose_name='\u7aef\u53e3')),
                 ('password', models.CharField(blank=True, max_length=30, null=True, verbose_name='\u5bc6\u7801')),
                 ('database', models.IntegerField(default=16, verbose_name='db\u6570')),

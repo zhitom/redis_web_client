@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from users.models import RedisConf
 from conf import logs
 import time
+import json
 from dss.Serializer import serializer
 
 from conf.conf import scan_batch
@@ -152,6 +153,26 @@ class GetValueView(LoginRequiredMixin, View):
         logs.info('get value: redis_name={0}, db={1}, key={2}'.format(redis_name, value_db_id, key))
         cl = get_cl(redis_name, int(value_db_id))
         value_dict = {'code': 0, 'msg': '', 'data': ''}
+        keyobj=None
+        isCmd=False
+        try:
+            keyobj=json.loads(key)
+            if keyobj.has_key('cmd') :
+                isCmd=True
+        except Exception as e:
+            pass
+        finally:
+            pass
+        if isCmd :
+            logs.info('execute: cmd={0}'.format(keyobj.get('cmd')))
+            res=cl.execute_command(*keyobj.get('cmd').split());
+            logs.info('execute response={0}'.format(res))
+            resinfo={"db":int(value_db_id),"key":keyobj.get('cmd'),
+                        "value":res.replace("\r\n","\n").strip("\n").split("\n"),
+                        "ttl":-1,"type":"string"};#{'$response':res}
+            #{"encoding":"","db":0,"value":"aa","key":"a a","ttl":-1,"type":"string","size":2}
+            value_dict['data']=resinfo;
+            return JsonResponse(value_dict, safe=False)
         if cl.exists(key):
             value = ''
             if request.GET.get("type", None) == 'ttl':
@@ -219,13 +240,23 @@ class ClientListView(LoginRequiredMixin, View):
             if status is True:
                 client = get_cl(redis_name=redis_obj.name)
                 client_list = client.client_list()
+                client_list_flat=[]
+                if redis_obj.type == 1 : #cluster
+                    if client_list.has_key(redis_obj.host+':'+str(redis_obj.port)) :
+                        for subclient in client_list.get(redis_obj.host+':'+str(redis_obj.port)):
+                            client_list_flat.append(subclient)
+                    else:
+                        for clientone in client_list.values():
+                            for subclient in clientone:
+                                client_list_flat.append(subclient)
+                else: #single node
+                    client_list_flat=client_list;
                 "分页"
                 limit = int(request.GET.get('limit', 30))
                 page = int(request.GET.get('page', 1))
                 max_num = limit * page
                 min_num = max_num - limit
-
-                data = {'code': 0, 'msg': '', 'count': len(client_list), 'data': client_list[min_num:max_num]}
+                data = {'code': 0, 'msg': '', 'count': len(client_list_flat), 'data': client_list_flat[min_num:max_num]}
         else:
             data = {'code': 1, 'msg': 'Error, 请联系系统管理员！', 'data': ''}
 

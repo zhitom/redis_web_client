@@ -200,3 +200,8 @@ STATICFILES_DIRS = [
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 SESSION_COOKIE_AGE = 86400
+CSRF_TRUSTED_ORIGINS = [
+    # may have to include host AND port
+    'sub.your.com:8263',
+]
+

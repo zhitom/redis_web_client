@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="demoTable">
-  搜索：
+  KEY_or_CMD：
   <div class="layui-inline">
     <input class="layui-input" name="id" id="demoReload" autocomplete="off">
   </div>
-  <button class="layui-btn" data-type="reload">搜索</button>
+  <button class="layui-btn" data-type="reload">查找or执行</button>
   <div class="layui-inline">
 	  <button class="layui-btn layui-btn-normal" data-type="addkey">新增</button>
   </div>
@@ -30,12 +30,12 @@ layui.use('table', function(){
     ,url: '/get_key/{{ redis_name }}/{{ db_id }}/'
     ,cols: [[
       {checkbox: true, fixed: true}
-      ,{field:'key', title: 'dbkey', width:1000, sort: true}
+      ,{field:'key', title: 'dbkey', width:1000,sort: true}
       ,{fixed:'right', width:260, align:'center', toolbar: '#barDemo'}
     ]]
     ,id: 'testReload'
     ,page: true
-    ,height: 600
+    //,height: 600
   });
 
   var $ = layui.$, active = {

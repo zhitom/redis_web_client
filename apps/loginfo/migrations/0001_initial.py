@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('username', models.CharField(max_length=20, verbose_name='\u7528\u6237\u540d')),
-                ('server', models.CharField(max_length=20, verbose_name='redis\u540d')),
+                ('server', models.CharField(max_length=1024, verbose_name='redis\u540d')),
                 ('db', models.CharField(max_length=20, verbose_name='db\u540d')),
                 ('key', models.CharField(max_length=120, verbose_name='key')),
                 ('old_value', models.TextField(verbose_name='old value')),

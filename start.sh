@@ -11,7 +11,7 @@ start() {
 
 stop() {
     pid=`cat ./log/gunicorn.pid`
-    kill ${pid}
+    kill -9 ${pid}
     if [ $? -eq 0 ]; then
         echo 'stop [ successful ]'
     else

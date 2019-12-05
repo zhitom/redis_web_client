@@ -4,11 +4,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>{% block title %}{% endblock %}</title>
+<title>RedisWeb管理平台-{% block title %}{% endblock %}</title>
 <link rel="stylesheet" href="{% static 'css/layui.css' %}">
 {% block css %}{% endblock %}
 <script src="{% static 'layui.js' %}"></script>
-<script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+<script src="{% static 'js/js.cookie.min.js' %}"></script>
 {% block headerjs %}{% endblock %}
 </head>
 <body>
