@@ -69,7 +69,33 @@ layui.use('table', function(){
                     layer.closeAll('loading');
                     layer.open({
                         title: datas.data.key,
-                        content: JSON.stringify(datas.data.value)
+                        content: '<div id="jsondetail"> \
+                            <section class="panel" > \
+                                <div class="panel-body" style="overflow:auto"> \
+                                JSON数据<input type="hidden" name="json_data" id="json_data" value="{{ json_data }}"/> \
+                                    <button id="collapse-btn">折叠</button> \
+                                    <button id="expand-btn">展开</button> \
+                                    <button id="reverse-btn">反转</button> \
+                                    <div id="json"></div> \
+                                </div> \
+                            </section> \
+                        </div>'
+                    });
+                    try
+                    {
+                        $("#json").JSONView(datas.data.value);
+                    }catch(err){
+                        $("#json").JSONView(JSON.stringify(datas.data.value));
+                    }
+                    $("#json-collapsed").JSONView(datas.data.value, {collapsed: true, nl2br: true});
+                    $('#collapse-btn').on('click', function() {
+                        $('#json').JSONView('collapse');
+                    });
+                    $('#expand-btn').on('click', function() {
+                        $('#json').JSONView('expand');
+                    });
+                    $('#reverse-btn').on('click', function() {
+                        $('#json').JSONView('toggle');
                     });
                 },
                 error: function () {

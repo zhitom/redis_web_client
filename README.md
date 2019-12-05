@@ -3,9 +3,10 @@
 此项目来自: **[https://gitee.com/careyjike_173/redis_web_client.git](https://gitee.com/careyjike_173/redis_web_client.git)** ,做了如下修改:
 
 - 将redis配置中的host和name长度做了扩充
-- 部署到https环境中,增加CSRF_TRUSTED_ORIGINS的对外域名设置信息,redis_admin/settings.py:
+- 部署到https环境中,增加CSRF_TRUSTED_ORIGINS的对外域名设置信息:
 
 ```python
+#redis_admin/settings.py
 CSRF_TRUSTED_ORIGINS = [
     # may have to include host AND port
     'sub.your.com:8263',
@@ -120,6 +121,7 @@ server {
   - 集群模式时查看详细客户端的bug:unhashable type错误
 - 功能新增
   - 支持在控制台执行命令,命令以'$'开头
+  - 支持命令结果按json展示
 
 # 下面的是原始的Readme
 

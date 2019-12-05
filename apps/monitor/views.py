@@ -165,10 +165,15 @@ class GetValueView(LoginRequiredMixin, View):
             pass
         if isCmd :
             logs.info('execute: cmd={0}'.format(keyobj.get('cmd')))
-            res=cl.execute_command(*keyobj.get('cmd').split());
+            try:
+                res=cl.execute_command(*keyobj.get('cmd').split());
+            except Exception as e:
+                res=str(e)
             logs.info('execute response={0}'.format(res))
+            if isinstance(res,basestring) :
+                res=res.replace("\r\n","\n").strip("\n").split("\n")
             resinfo={"db":int(value_db_id),"key":keyobj.get('cmd'),
-                        "value":res.replace("\r\n","\n").strip("\n").split("\n"),
+                        "value":res,
                         "ttl":-1,"type":"string"};#{'$response':res}
             #{"encoding":"","db":0,"value":"aa","key":"a a","ttl":-1,"type":"string","size":2}
             value_dict['data']=resinfo;
