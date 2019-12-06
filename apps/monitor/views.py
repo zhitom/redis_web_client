@@ -179,13 +179,14 @@ class GetValueView(LoginRequiredMixin, View):
             value_dict['data']=resinfo;
             return JsonResponse(value_dict, safe=False)
         if cl.exists(key):
-            value = ''
+            value = {}
             if request.GET.get("type", None) == 'ttl':
-                value = cl.ttl(key)
-                if value is None:
-                    value = -1
+                ttl=cl.ttl(key)
+                if ttl is None:
+                    ttl = -1
                 logs.info('get key ttl: redis_name={0}, db={1}, key={2}, ttl={3}'.format(
-                    redis_name, value_db_id, key, value))
+                    redis_name, value_db_id, key, ttl))
+                value={"db":value_db_id,"key":key,"value":ttl,"ttl":ttl,"type":"long"}
             else:
                 try:
                     value = get_value(key, int(value_db_id), cl)

@@ -245,9 +245,9 @@ layui.use('table', function(){
                     layer.prompt({
                         title: "TTL",
                         formType: 0,
-                        value: datas.data
+                        value: datas.data.value
                     }, function (value, index, elem) {
-                        if(auth === 3) {
+                        if(auth === 2||auth === 3) {
                             layer.load();
                             $.ajax({
                                 url: '/view/{{ redis_name }}/{{ db_id }}/' + data.key + '/?type=ttl',
