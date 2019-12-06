@@ -13,7 +13,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 ```
 
-- 容器里边nginx配置样例:
+- 容器里边nginx配置样例，访问地址： **[http://127.0.0.1:9000/]http://127.0.0.1:9000/** :
 
 ```nginx
 #/etc/nginx/nginx.conf
