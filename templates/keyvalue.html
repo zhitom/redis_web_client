@@ -227,9 +227,9 @@ layui.use('table', function(){
       }
     } else if(obj.event === 'edit'){
         if(auth === 2) {
-            window.location.href = "/edit/{{ redis_name }}/db{{ db_id }}?key=" + data.key;
+            window.location.href = "/edit/{{ redis_name }}/db{{ db_id }}?key=" + encodeURIComponent(data.key);
         } else if(auth === 3){
-            window.location.href = "/edit/{{ redis_name }}/db{{ db_id }}?key=" + data.key;
+            window.location.href = "/edit/{{ redis_name }}/db{{ db_id }}?key=" + encodeURIComponent(data.key);
         } else {
             layer.msg("您没有权限噢 😯");
             layer.closeAll('loading')
