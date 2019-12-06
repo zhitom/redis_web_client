@@ -12,3 +12,10 @@ k={}
 a=['a1','a2']
 print a[1]
 
+s="-1"
+if s < 0 :
+    print 'less'
+else:
+    print 'larger'
+
+

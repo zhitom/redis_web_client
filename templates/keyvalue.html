@@ -106,7 +106,7 @@ layui.use('table', function(){
   //方法级渲染
   table.render({
     elem: '#LAY_table_user'
-    ,url: '/get_key/{{ redis_name }}/{{ db_id }}/'
+    ,url: encodeURI('/get_key/{{ redis_name }}/{{ db_id }}/')
     ,cols: [[
       {checkbox: true, fixed: true}
       ,{field:'key', title: 'dbkey', width:1000,sort: true}
@@ -132,7 +132,7 @@ layui.use('table', function(){
       });
     },
     addkey: function () {
-        window.location.href="/add/key/{{ redis_name }}/?db={{ db_id }}"
+        window.location.href=encodeURI("/add/key/{{ redis_name }}/?db={{ db_id }}")
     }
   };
 
@@ -143,7 +143,7 @@ layui.use('table', function(){
     if(obj.event === 'detail'){
         if(auth === 3 || auth === 2 || auth === 1) {
             $.ajax({
-                url: '/view/{{ redis_name }}/{{ db_id }}/' + data.key + '/',
+                url: '/view/{{ redis_name }}/{{ db_id }}?key=' + encodeURIComponent(data.key),
                 dataType: 'json',
                 type: 'get',
                 success: function (datas) {
@@ -237,7 +237,7 @@ layui.use('table', function(){
     } else if(obj.event === 'edit_ttl'){
         if(auth === 3 || auth === 2 || auth === 1) {
             $.ajax({
-                url: '/view/{{ redis_name }}/{{ db_id }}/' + data.key + '/?type=ttl',
+                url: '/view/{{ redis_name }}/{{ db_id }}?key=' + encodeURIComponent(data.key) + '&type=ttl',
                 dataType: 'json',
                 type: 'get',
                 success: function (datas) {
@@ -250,10 +250,10 @@ layui.use('table', function(){
                         if(auth === 2||auth === 3) {
                             layer.load();
                             $.ajax({
-                                url: '/view/{{ redis_name }}/{{ db_id }}/' + data.key + '/?type=ttl',
+                                url: '/view/{{ redis_name }}/{{ db_id }}/?type=ttl',
                                 dataType: 'json',
                                 type: 'post',
-                                data: {'ttl': value},
+                                data: {'key':data.key,'ttl': value},
                                 success: function (datas) {
                                     layer.closeAll('loading');
                                     layer.msg(datas.msg);

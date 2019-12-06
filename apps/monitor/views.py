@@ -147,9 +147,10 @@ class GetValueView(LoginRequiredMixin, View):
     获取key对应value
     """
 
-    def get(self, request, redis_name, value_db_id, key):
+    def get(self, request, redis_name, value_db_id):
         from public.redis_api import get_cl
         from public.data_view import get_value
+        key = request.GET.get('key', None)
         logs.info('get value: redis_name={0}, db={1}, key={2}'.format(redis_name, value_db_id, key))
         cl = get_cl(redis_name, int(value_db_id))
         value_dict = {'code': 0, 'msg': '', 'data': ''}
@@ -203,17 +204,21 @@ class GetValueView(LoginRequiredMixin, View):
 
         return JsonResponse(value_dict, safe=False)
 
-    def post(self, request, redis_name, value_db_id, key):
+    def post(self, request, redis_name, value_db_id):
         """
         修改TTL
         """
         from public.redis_api import get_cl
         cl = get_cl(redis_name, int(value_db_id))
         value_dict = {'code': 0, 'msg': '', 'data': ''}
+        key = request.POST.get('key', None)
         ttl = request.POST.get("ttl", None)
-        if cl.exists(key) and ttl:
-            try:
-                cl.expire(key, ttl)
+        if cl.exists(key) and ttl!=None :
+            try:    
+                if long(ttl) < 0 :
+                    cl.persist(key)
+                else:
+                    cl.expire(key, ttl)
                 logs.info('change key tll: redis_name={0}, db={1}, key={2}, ttl={3}'.format(
                     redis_name, value_db_id, key, ttl))
                 value_dict['msg'] = "修改成功"
@@ -337,7 +342,8 @@ class EditValueTableView(LoginRequiredMixin, View):
                     num += 1
                     value_list.append(value_dict)
                 value['value'] = value_list
-
+        else:
+            value=None
         return render(request, 'edit.html', {
             'db_num': 'db' + str(edit_db_id),
             'redis_name': redis_name,

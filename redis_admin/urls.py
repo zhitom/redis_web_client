@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^logout/$', LogoutView.as_view(), name='logout'),
     url(r'^(?P<redis_name>\w+)/db(?P<id>[0-9]+)/$', GetIdView.as_view(), name='getid'),
     url(r'^get_key/(?P<redis_name>\w+)/(?P<db_id>[0-9]+)/$', GetKeyView.as_view(), name='getkey'),
-    url(r'^view/(?P<redis_name>\w+)/(?P<value_db_id>[0-9]+)/(?P<key>.*)/$', GetValueView.as_view(),
+    url(r'^view/(?P<redis_name>\w+)/(?P<value_db_id>[0-9]+)/$', GetValueView.as_view(),
         name='getvalue'),
     url(r'^client/(?P<client_id>[0-9]+)/$', ClientHtmlView.as_view(), name='client_html'),
     url(r'^client_list/$', ClientListView.as_view(), name='client_list'),
