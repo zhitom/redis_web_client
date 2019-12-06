@@ -68,7 +68,7 @@ select.classic:focus {
     </select>
   </div>
   <div class="layui-inline">
-    <input class="layui-input" name="id" id="demoReload" placeholder="请在左侧选择输入KEY或命令信息" autocomplete="on">
+    <input class="layui-input" style="width: 500px" name="id" id="demoReload" placeholder="请在左侧选择后再输入KEY或命令信息" autocomplete="on">
   </div>
   <button class="layui-btn" data-type="reload">查找or执行</button>
   <div class="layui-inline">
@@ -78,9 +78,23 @@ select.classic:focus {
 	  <button class="layui-btn layui-btn-danger" id="clear">清空DB</button>
   </div>
 </div>
-
-
 <table class="layui-hide" id="LAY_table_user" lay-filter="user"></table>
+
+{% load staticfiles %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/jquery.jsonview.min.css' %}">
+{% endblock %}
+{% block headerjs %}
+<script src="{% static 'lay/modules/jquery.js' %}"></script>
+<script>
+var jQuery;
+layui.use('jquery',function(){
+jQuery=layui.jquery;
+})
+</script>
+<script src="{% static 'js/jquery.jsonview.js' %}"></script>
+{% endblock %}
+
 <script>
 layui.use('table', function(){
   var table = layui.table,
@@ -100,7 +114,7 @@ layui.use('table', function(){
     ]]
     ,id: 'testReload'
     ,page: true
-    //,height: 600
+    ,height: 'full-180' //,height: 600
   });
 
   var $ = layui.$, active = {
@@ -143,17 +157,13 @@ layui.use('table', function(){
                                     <button id="collapse-btn">折叠</button> \
                                     <button id="expand-btn">展开</button> \
                                     <button id="reverse-btn">反转</button> \
+                                    <hr class="layui-bg-gray">\
                                     <div id="json"></div> \
                                 </div> \
                             </section> \
                         </div>'
                     });
-                    try
-                    {
-                        $("#json").JSONView(datas.data.value);
-                    }catch(err){
-                        $("#json").JSONView(JSON.stringify(datas.data.value));
-                    }
+                    $("#json").JSONView(datas.data.value);
                     $("#json-collapsed").JSONView(datas.data.value, {collapsed: true, nl2br: true});
                     $('#collapse-btn').on('click', function() {
                         $('#json').JSONView('collapse');
@@ -310,3 +320,5 @@ layui.use('table', function(){
 
 </script>
 {% endblock %}
+
+

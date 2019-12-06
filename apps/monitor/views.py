@@ -173,7 +173,7 @@ class GetValueView(LoginRequiredMixin, View):
             if isinstance(res,basestring) :
                 res=res.replace("\r\n","\n").strip("\n").split("\n")
             resinfo={"db":int(value_db_id),"key":keyobj.get('cmd'),
-                        "value":res,
+                        "value":json.dumps(res),
                         "ttl":-1,"type":"string"};#{'$response':res}
             #{"encoding":"","db":0,"value":"aa","key":"a a","ttl":-1,"type":"string","size":2}
             value_dict['data']=resinfo;
@@ -193,6 +193,8 @@ class GetValueView(LoginRequiredMixin, View):
                     logs.error('get value is error: redis_name:{0}, key:{1}, db:{2}, cl:{3}, error_info:{4}'.format(
                         redis_name, key, value_db_id, cl, e))
                     value_dict['code'] = 1
+            if value.has_key('value') :
+                value['value']=json.dumps(value.get('value'))
             value_dict['data'] = value
         else:
             logs.warning('key is not exists: redis_name={0}, db={1}, key={2}'.format(redis_name, value_db_id, key))
