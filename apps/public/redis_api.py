@@ -142,15 +142,17 @@ def get_all_keys_tree(client=None, key='*', cursor=0, min_num=None, max_num=None
         data = client.scan(cursor=cursor, match=key, count=scan_batch)
     else:
         if key[0] == '$' :
-            logs.info('execute: cmd={0}'.format(key[1:].split()))
+            cmdList=key[1:].split();
+            cmdList[0]=cmdList[0].upper();
+            logs.info('execute: cmd={0}'.format(" ".join(cmdList)))
             try:
-                res=client.execute_command(*key[1:].split());
+                res=client.execute_command(*cmdList);
             except Exception as e:
                 res=str(e)
-            #logs.info('execute response={0}'.format(res))
+            logs.info('execute response={0}'.format(res))
             if isinstance(res,basestring) :
                 res=res.replace("\r\n","\n").strip("\n").split("\n");
-            resinfo={'cmd':" ".join(key[1:].split()),'response':res};#{'$response':res}
+            resinfo={'cmd':" ".join(cmdList),'response':res};#{'$response':res}
             data_list = list()
             data_list.append(json.dumps(resinfo));
             return data_list[min_num:max_num];

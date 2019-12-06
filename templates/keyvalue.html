@@ -142,8 +142,17 @@ layui.use('table', function(){
     layer.load();
     if(obj.event === 'detail'){
         if(auth === 3 || auth === 2 || auth === 1) {
+            isCmd=data.key.indexOf('{"cmd":')==0
+            trueKey=""
+            if(isCmd){
+                keyObj=JSON.parse(data.key)
+                keyObj['response']=""
+                trueKey=JSON.stringify(keyObj)
+            }else{
+                trueKey=data.key
+            }
             $.ajax({
-                url: '/view/{{ redis_name }}/{{ db_id }}?key=' + encodeURIComponent(data.key),
+                url: '/view/{{ redis_name }}/{{ db_id }}?key=' + encodeURIComponent(trueKey),
                 dataType: 'json',
                 type: 'get',
                 success: function (datas) {
