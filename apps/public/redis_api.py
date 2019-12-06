@@ -37,7 +37,7 @@ def cluster_connect(conf, password=None):
 
 
 def get_cluster_first_conf(name):
-    redis_obj = RedisConf.objects.filter(name=name)[1]
+    redis_obj = RedisConf.objects.filter(name=name)[0]
     return redis_obj
 
 
@@ -61,15 +61,17 @@ def get_redis_conf(name=None, user=None):
         except MultipleObjectsReturned:
             cluster_confs = RedisConf.objects.filter(name=name)
             cluster_conf_list = list()
-            for cluster in cluster_confs:
-                cluster_conf_dict = dict()
-                cluster_conf_dict['id'] = cluster.id
-                cluster_conf_dict['host'] = cluster.host
-                cluster_conf_dict['port'] = cluster.port
-                cluster_conf_dict['password'] = cluster.password
-                cluster_conf_dict['name'] = cluster.name
-                cluster_conf_list.append(cluster_conf_dict)
-                del cluster_conf_dict
+            if len(cluster_confs) == 0:
+                return cluster_conf_list
+            cluster=cluster_confs[0]
+            cluster_conf_dict = dict()
+            cluster_conf_dict['id'] = cluster.id
+            cluster_conf_dict['host'] = cluster.host
+            cluster_conf_dict['port'] = cluster.port
+            cluster_conf_dict['password'] = cluster.password
+            cluster_conf_dict['name'] = cluster.name
+            cluster_conf_list.append(cluster_conf_dict)
+            del cluster_conf_dict
             return cluster_conf_list
         except Exception as e:
             logs.error(e)
@@ -239,7 +241,7 @@ class Connection(redis.Connection):
             sock = self._connect()
         except socket.error:
             e = sys.exc_info()[1]
-            raise ConnectionError(self._error_message(e))
+            raise ConnectionError(self._error_message(e)+':'+str(socket.error))
 
         self._sock = sock
         try:

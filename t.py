@@ -7,3 +7,6 @@ keys=json.dumps(key)
 keyojb=json.loads(keys)
 print keyojb['cmd']
 print keyojb['response']
+a=['a1','a2']
+print a[1]
+

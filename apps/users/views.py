@@ -62,7 +62,7 @@ class LoginViews(View):
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    servers = get_redis_conf(name=None, user=request.user)
+                    servers = get_redis_conf(name=None, user=user)
                     user_premission = dict()
                     for ser in servers:
                         try:
@@ -116,6 +116,8 @@ class ChangeUser(LoginRequiredMixin, View):
         is_superuser = request.POST.get('is_superuser', None)
 
         rediss = list(RedisConf.objects.all())
+        redissimple = RedisConf.objects.filter(type=0)
+        cluster = get_all_cluster_redis()
         name_list = []
         redis_list = []
         for i in rediss:
@@ -198,9 +200,12 @@ class ChangeUser(LoginRequiredMixin, View):
 
         except Exception as e:
             error = e
-
+        auth = get_redis_conf(name=None, user=user)
         return render(request, 'change_user.html', {
             'user_info': user,
+            'rediss': redissimple,
+            'clusters': cluster,
+            'auth': auth,
             'error': error
         })
 
@@ -244,11 +249,22 @@ class EditUser(LoginRequiredMixin, View):
 
 class AddUser(LoginRequiredMixin, View):
     def get(self, request):
-        redis = RedisConf.objects.all()
-
-        return render(request, 'add_user.html', {
-            'rediss': redis,
-        })
+        #redis = RedisConf.objects.all()
+        #return render(request, 'add_user.html', {
+        #    'rediss': redis,
+        #})
+        try:
+            redis = RedisConf.objects.filter(type=0)
+            cluster = get_all_cluster_redis()
+            return render(request, 'add_user.html', {
+                'rediss': redis,
+                'clusters': cluster
+            })
+        except Exception as e:
+            logs.error(u"新增用户信息: msg:{0}".format(e))
+            return render(request, 'add_user.html', {
+                'user_error': e
+            })
 
     def post(self, request):
 
