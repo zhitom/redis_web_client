@@ -1,12 +1,52 @@
 <head>
-
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="./static/css/layui.css">
+    <!-- <link rel="stylesheet" href="./static/css/jquery.jsonview.css"> -->
+    <script src="./static/layui.js"></script>
+    <!-- <script src="./static/lay/modules/jquery.js"></script>
+    <script>
+    var jQuery;
+    layui.use('jquery',function(){
+    jQuery=layui.jquery;
+    $=layui.jquery;
+    })
+    </script>
+    <script src="./static/js/jquery.jsonview.js"></script> -->
 </head>
 <body>
+        <!-- <div class="layui-fluid">  
+            常规布局（以中型屏幕桌面为例）：
+            <div class="layui-row">
+                    常规
+            </div>
+        </div> -->
+<p>dfffffffffffffffff</p><br>
 <script>
-    var jsonstr='"j"'
-    console.log(jsonstr)
-    var jsonobj=JSON.parse(jsonstr)
-    console.log(jsonobj)
+layui.use('layer', function () {
+    var $ = layui.jquery, layer = layui.layer; 
+    layer.closeAll('loading');
+    var jsonstr='{"a":100,"array":["b1","b2"]}\n\n\n\n\n\n\n\n\n'
+    layer.open({
+        title: 'tttt',
+        type: 1,
+        skin: 'layui-layer-rim', //加上边框
+        shadeClose: true,
+        shade: 0.8,
+        //maxmin: true, //开启最大化最小化按钮
+        //area: ['1024', '1024px'],
+        content: '<div id="jsondetail" class="panel"> \
+                JSON数据<input type="hidden" name="json_data" id="json_data" value="{{ json_data }}"/> \
+                    <button id="collapse-btn">折叠</button> \
+                    <button id="expand-btn">展开</button> \
+                    <button id="reverse-btn">反转</button> \
+                    <hr class="layui-bg-gray">\
+                <table class="layui-table"> \
+                    <tbody><tr><td id="json"> \
+                    '+ jsonstr +'</td></tr></tbody></table> \
+        </div>'
+    });
+});
+$("#raw-btn").click(function(){console.log("url="+$("#view").url);window.open.href=$("#view").url;});
 </script>
 
 </body>
