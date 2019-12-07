@@ -1,0 +1,12 @@
+#Debian 9
+#deb http://mirrors.aliyun.com/debian stretch main contrib non-free
+#deb http://mirrors.aliyun.com/debian stretch-updates main contrib non-free
+#deb http://mirrors.aliyun.com/debian stretch-proposed-updates main contrib non-free
+#deb http://mirrors.aliyun.com/debian-security stretch/updates main
+
+#Debian 10
+deb http://mirrors.aliyun.com/debian buster main contrib non-free
+deb http://mirrors.aliyun.com/debian buster-updates main contrib non-free
+deb http://mirrors.aliyun.com/debian buster-proposed-updates main contrib non-free
+deb http://mirrors.aliyun.com/debian-security buster/updates main
+
