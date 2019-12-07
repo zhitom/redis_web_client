@@ -1,7 +1,34 @@
-# 说明
+# 修改说明
 
 此项目来自: **[https://gitee.com/careyjike_173/redis_web_client.git](https://gitee.com/careyjike_173/redis_web_client.git)** ,做了如下修改:
 
+- bug修改
+  - 集群模式时查看详细客户端的bug:unhashable type错误
+
+- 功能新增
+  - 支持在控制台执行命令
+  - 支持命令结果按json展示,并增加多种展示方式
+  - 支持key使用/、+等特殊字符
+  - docker化,下面的是环境变量含义：
+        - ADMIN_MAIL: 管理员地址邮件，非必须
+        - WEB_USER：web登录界面使用的用户，默认为admin,启动后使用下面的方法设置密码：
+                - 在容器中执行：cd /opt/redis_web_client&&python manage.py changepassword ${WEB_USER}
+        - NGINX_PORT：暴露给外部访问端口，为访问入口,默认为9000
+        - DJANGO_PORT：nginx和django在数据交互端口，默认为8000
+        - WEB_DNS_NAME：如果配置了https在反向代理，这里需要配置反向代理暴露给外部访问的域名信息，默认为：sub.your.com:12379
+        - MYSQL_DB_NAME：mysql数据库的实例名，默认为rediswebclient
+        - MYSQL_DB_HOST：mysql主机名,默认为127.0.0.1
+        - MYSQL_DB_PORT：mysql端口，默认为3306
+        - MYSQL_DB_USER：mysql用户名，默认为root
+        - MYSQL_DB_PASSWD：mysql密码，默认为rediswebclient@123
+        - IS_YOUR_CONF：是否使用自己的配置文件，1：自己配置文件通过挂载的方式覆盖到容器内部，默认为0：使用默认配置文件，包括下面在文件：
+                - /opt/redis_web_client/conf/conf.py
+                - /opt/redis_web_client/redis_admin/settings.py
+                - /opt/redis_web_client/funicorn.py
+                - /etc/nginx/nginx.conf
+                - /etc/nginx/conf.d/redis_web_client.conf
+  - docker镜像下载：docker pull zhitom/rediswebclient
+  
 - 将redis配置中的host和name长度做了扩充
 - 部署到https环境中,增加CSRF_TRUSTED_ORIGINS的对外域名设置信息:
 
@@ -117,13 +144,6 @@ server {
   }
 ```
 
-- bug修改
-  - 集群模式时查看详细客户端的bug:unhashable type错误
-- 功能新增
-  - 支持在控制台执行命令
-  - 支持命令结果按json展示,并增加多种展示方式
-  - 支持key使用/、+等特殊字符
-
 # 下面的是原始的Readme
 
 ## redis admin
@@ -143,7 +163,6 @@ Redis Admin是一个Redis管理平台，主要用于方便查看Key信息。
 ## 截图
 
 ![](https://gitee.com/careyjike_173/redis_web_client/raw/master/static/img/1.png)
-
 
 ![](https://gitee.com/careyjike_173/redis_web_client/raw/master/static/img/2.png)
 
